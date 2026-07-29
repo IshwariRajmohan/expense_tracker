@@ -1,10 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using backend.Data;
 using backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddSingleton<IEmployeeService, EmployeeService>();
+
+// Configure ApplicationDbContext with SQL Server
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("frontend", policy =>
