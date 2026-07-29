@@ -100,14 +100,6 @@
     <main class="content-body">
       <!-- DASHBOARD TAB -->
       <section *ngIf="activeTab === 'dashboard'" class="fade-in">
-        <!-- Rejected Alert Banner -->
-        <div class="alert alert-danger border-danger-subtle bg-danger-subtle text-danger-emphasis fs-8 d-flex align-items-center gap-2 mb-4" *ngIf="hasRejectedClaims">
-          <i class="bi bi-exclamation-octagon-fill fs-6 text-danger"></i>
-          <div>
-            <strong>Action Required:</strong> You have rejected expense claims. You can edit their amounts and resubmit them for manager audit.
-          </div>
-        </div>
-
         <!-- KPI Card Grid -->
         <div class="row g-4 mb-4">
           <!-- Card 1: Budget Limit -->
@@ -287,17 +279,17 @@
                 <div class="row g-3 mb-4">
                   <div class="col-12 col-md-6">
                     <label class="form-label">Expense Title / Reason <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control custom-input" [(ngModel)]="expenseTitle" name="title" placeholder="e.g. Server hosting, client lunch..." [disabled]="isEditingRejected" required>
+                    <input type="text" class="form-control custom-input" [(ngModel)]="expenseTitle" name="title" placeholder="e.g. Server hosting, client lunch..." required>
                   </div>
                   <div class="col-12 col-md-3">
                     <label class="form-label">Expense Category <span class="text-danger">*</span></label>
-                    <select class="form-select custom-input" [(ngModel)]="expenseCategory" name="category" [disabled]="isEditingRejected">
+                    <select class="form-select custom-input" [(ngModel)]="expenseCategory" name="category">
                       <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
                     </select>
                   </div>
                   <div class="col-12 col-md-3">
                     <label class="form-label">Transaction Date <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control custom-input" [(ngModel)]="expenseDate" name="date" [disabled]="isEditingRejected" required>
+                    <input type="date" class="form-control custom-input" [(ngModel)]="expenseDate" name="date" required>
                   </div>
                 </div>
 
@@ -387,7 +379,7 @@
                 <div class="row g-3 mb-4">
                   <div class="col-12 col-md-6">
                     <label class="form-label">Expense Description</label>
-                    <textarea class="form-control custom-input" [(ngModel)]="expenseDescription" name="description" rows="3" placeholder="Provide general reasoning or justification for auditing purposes." [disabled]="isEditingRejected"></textarea>
+                    <textarea class="form-control custom-input" [(ngModel)]="expenseDescription" name="description" rows="3" placeholder="Provide general reasoning or justification for auditing purposes."></textarea>
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label">Internal Audit Notes (Optional)</label>

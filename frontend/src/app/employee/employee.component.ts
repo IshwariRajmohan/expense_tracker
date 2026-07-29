@@ -75,16 +75,6 @@ export class EmployeeComponent implements OnInit {
     private router: Router
   ) {}
 
-  get isEditingRejected(): boolean {
-    if (!this.isEditing || !this.editingExpenseId) return false;
-    const exp = this.employeeService.expenses().find(e => e.id === this.editingExpenseId);
-    return exp ? exp.status === 'Rejected' : false;
-  }
-
-  get hasRejectedClaims(): boolean {
-    return this.employeeService.expenses().some(e => e.status === 'Rejected');
-  }
-
   ngOnInit(): void {
     this.resetExpenseForm();
     this.initProfileForm();

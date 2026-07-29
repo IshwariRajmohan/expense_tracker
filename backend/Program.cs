@@ -12,6 +12,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddSingleton<IManagerService, ManagerService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("frontend", policy =>
