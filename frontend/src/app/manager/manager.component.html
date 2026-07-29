@@ -1,0 +1,565 @@
+<div class="manager-portal">
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="btn btn-outline-dark border-light-subtle" (click)="showMobileSidebar = !showMobileSidebar">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <a href="#" class="brand-logo">
+      <i class="bi bi-wallet2 text-primary"></i>
+      <span>FirstPay Portal</span>
+    </a>
+    <div class="dropdown">
+      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop" class="profile-avatar-sm" alt="Avatar" (click)="changeTab('profile')">
+    </div>
+  </header>
+
+  <!-- Sidebar Component -->
+  <aside class="sidebar" [class.show-mobile]="showMobileSidebar">
+    <div class="sidebar-brand">
+      <a href="#" class="brand-logo">
+        <i class="bi bi-wallet2 fs-3 text-primary"></i>
+        <span>Veripark Portal</span>
+      </a>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'dashboard'" (click)="changeTab('dashboard')">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'approval-history'" (click)="changeTab('approval-history')">
+          <i class="bi bi-clock-history"></i>
+          <span>Approval History</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'profile'" (click)="changeTab('profile')">
+          <i class="bi bi-person-badge"></i>
+          <span>My Profile</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-profile" *ngIf="managerService.profile() as prof">
+      <div class="d-flex align-items-center gap-3">
+        <img [src]="prof.avatarUrl" class="profile-avatar-sm" alt="Avatar">
+        <div class="min-w-0 flex-grow-1">
+          <h6 class="mb-0 text-dark text-truncate">{{ prof.name }}</h6>
+          <small class="text-muted d-block text-truncate">{{ prof.role }}</small>
+        </div>
+        <button class="btn btn-link text-danger p-0" (click)="logout()" title="Logout">
+          <i class="bi bi-box-arrow-right fs-5"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    <!-- Top Nav Bar (Desktop Only) -->
+    <header class="top-bar">
+      <div class="d-flex align-items-center">
+        <h4 class="mb-0 font-weight-bold text-dark">
+          <span *ngIf="activeTab === 'dashboard'">Manager Dashboard Overview</span>
+          <span *ngIf="activeTab === 'expense-details'">Expense Claim Audit Details</span>
+          <span *ngIf="activeTab === 'approval-history'">Audit History Trail</span>
+          <span *ngIf="activeTab === 'profile'">Manager Profile Details</span>
+        </h4>
+      </div>
+
+      <div class="d-flex align-items-center gap-4">
+        <!-- Dashboard Alert Pill -->
+        <div class="d-flex align-items-center gap-2 bg-light px-3 py-1.5 rounded-pill border border-light-subtle" *ngIf="managerService.dashboard() as db">
+          <i class="bi bi-bell-fill text-warning"></i>
+          <span class="text-muted fs-7">Backlog:</span>
+          <strong class="text-dark fs-7">{{ db.pendingRequestsCount }} Claims</strong>
+        </div>
+
+        <!-- Notification Bell -->
+        <div class="position-relative cursor-pointer">
+          <i class="bi bi-bell fs-5 text-muted hover-white"></i>
+          <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+        </div>
+
+        <button class="btn btn-sm btn-outline-danger px-3 py-1.5" (click)="logout()">
+          <i class="bi bi-box-arrow-right me-2"></i>Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Body -->
+    <main class="content-body">
+      <!-- DASHBOARD TAB -->
+      <section *ngIf="activeTab === 'dashboard'" class="fade-in">
+        <!-- KPI Card Grid -->
+        <div class="row g-4 mb-4" *ngIf="managerService.dashboard() as db">
+          <!-- Card 1: Pending Claims Count -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-pending d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Pending Claims</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ db.pendingRequestsCount }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Approved Today -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-approved d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Approved Today</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ db.approvedTodayCount }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Rejected Today -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-total d-flex align-items-center justify-content-between" style="--kpi-color: #ef4444;">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Rejected Today</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ db.rejectedTodayCount }}</h3>
+              </div>
+              <div class="kpi-icon" style="background-color: rgba(239, 68, 68, 0.08); color: #ef4444;">
+                <i class="bi bi-x-circle-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Total Pending Amount -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-budget d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Total Pending Sum</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ managerService.selectedCurrencySymbol() }}{{ db.totalPendingAmount | number:'1.2-2' }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-piggy-bank-fill"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Embedded Pending Expenses Table (Replaces Charts) -->
+        <div class="glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-dark font-weight-bold mb-0">Pending Expense Requisitions</h5>
+          </div>
+
+          <!-- Search & Filter Bar -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex flex-wrap align-items-center gap-3 flex-grow-1" style="max-width: 600px;">
+              <!-- Search Input -->
+              <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1" style="max-width: 320px;">
+                <span class="input-group-text bg-white border-0 text-muted ps-3">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control border-0 bg-white" placeholder="Search by title, employee..." [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()">
+              </div>
+
+              <!-- Category filter -->
+              <select class="form-select custom-input shadow-sm" style="max-width: 220px;" [(ngModel)]="filterCategory" (change)="onFilterChange()">
+                <option value="">All Categories</option>
+                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+
+            <!-- Page stats summary -->
+            <div class="text-muted fs-8">
+              Showing <strong>{{ Math.min(totalExpensesCount, (currentPage - 1) * pageSize + 1) }}-{{ Math.min(totalExpensesCount, currentPage * pageSize) }}</strong> of <strong>{{ totalExpensesCount }}</strong> pending claims
+            </div>
+          </div>
+
+          <!-- Pending Expenses Table -->
+          <div class="table-responsive border border-light-subtle rounded mb-4" *ngIf="filteredExpenses.length > 0; else noPendingClaims">
+            <table class="table custom-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 12%;">Claim ID</th>
+                  <th style="width: 28%;">Expense Title</th>
+                  <th style="width: 20%;">Employee</th>
+                  <th style="width: 15%;">Category</th>
+                  <th style="width: 12%;" class="text-end">Amount</th>
+                  <th style="width: 13%;" class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let exp of paginatedExpenses">
+                  <td>
+                    <span class="text-muted fs-8 font-weight-bold">{{ exp.id }}</span>
+                  </td>
+                  <td>
+                    <div>
+                      <h6 class="text-dark font-weight-bold mb-0.5">{{ exp.title }}</h6>
+                      <small class="text-muted text-truncate d-block" style="max-width: 240px;">{{ exp.description }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2" *ngIf="exp.employee">
+                      <img [src]="exp.employee.avatarUrl" class="rounded-circle border border-primary-subtle" style="width: 28px; height: 28px; object-fit: cover;">
+                      <div>
+                        <span class="text-dark font-weight-bold d-block fs-8">{{ exp.employee.name }}</span>
+                        <small class="text-muted fs-9 d-block">{{ exp.employee.department }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-muted fs-8">{{ exp.category }}</span>
+                  </td>
+                  <td class="text-end font-weight-bold text-primary">
+                    {{ managerService.selectedCurrencySymbol() }}{{ exp.totalAmount | number:'1.2-2' }}
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary px-3 rounded-pill" (click)="viewExpenseDetails(exp)">
+                      <i class="bi bi-eye me-1.5"></i>Audit
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noPendingClaims>
+            <div class="text-center py-5 border border-dashed border-light-subtle rounded my-4">
+              <i class="bi bi-clipboard-check fs-1 text-muted mb-2 d-block"></i>
+              <h5 class="text-dark">No Pending Claims Found</h5>
+              <p class="text-muted fs-8">There are no pending reimbursement requests to review.</p>
+            </div>
+          </ng-template>
+
+          <!-- Pagination controls -->
+          <div class="d-flex justify-content-between align-items-center" *ngIf="totalPages > 1">
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+              <i class="bi bi-chevron-left me-1"></i>Previous
+            </button>
+            <div class="d-flex gap-1">
+              <button *ngFor="let p of getPagesArray()" class="btn btn-sm px-2.5" [class.btn-primary-custom]="currentPage === p" [class.btn-outline-secondary]="currentPage !== p" (click)="changePage(p)">
+                {{ p }}
+              </button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+              Next<i class="bi bi-chevron-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPENSE DETAILS TAB -->
+      <section *ngIf="activeTab === 'expense-details' && selectedExpense" class="fade-in">
+        <div class="row justify-content-center">
+          <div class="col-12 col-xl-10">
+            <!-- Details Header Card -->
+            <div class="glass-card mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-light-subtle pb-3">
+                <div>
+                  <span class="text-muted fs-8 font-weight-bold">Claim ID: {{ selectedExpense.id }}</span>
+                  <h3 class="text-dark mb-0 mt-1">{{ selectedExpense.title }}</h3>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" (click)="changeTab('dashboard')">
+                  Back to Dashboard
+                </button>
+              </div>
+
+              <!-- Employee Profile details banner -->
+              <div class="row g-3 bg-light border border-light-subtle rounded p-3 mb-4 align-items-center" *ngIf="selectedExpense.employee">
+                <div class="col-auto">
+                  <img [src]="selectedExpense.employee.avatarUrl" class="rounded-circle border border-primary-custom border-2" style="width: 60px; height: 60px; object-fit: cover;">
+                </div>
+                <div class="col">
+                  <span class="text-muted fs-9 d-block uppercase font-weight-bold">Filing Employee</span>
+                  <h5 class="text-dark font-weight-bold mb-0.5">{{ selectedExpense.employee.name }}</h5>
+                  <p class="text-muted fs-8 mb-0">{{ selectedExpense.employee.email }} • ID: {{ selectedExpense.employee.employeeId }}</p>
+                </div>
+                <div class="col-md-3 border-start border-light-subtle ps-4">
+                  <span class="text-muted fs-9 d-block">Department</span>
+                  <strong class="text-dark fs-8">{{ selectedExpense.employee.department }}</strong>
+                </div>
+                <div class="col-md-3 border-start border-light-subtle ps-4">
+                  <span class="text-muted fs-9 d-block">Corporate Role</span>
+                  <strong class="text-dark fs-8">Department Specialist</strong>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-6">
+                  <label class="text-muted fs-8 d-block mb-0.5">Filing Category</label>
+                  <strong class="text-dark">{{ selectedExpense.category }}</strong>
+                </div>
+                <div class="col-6 text-end">
+                  <label class="text-muted fs-8 d-block mb-0.5">Total Claim Request</label>
+                  <h3 class="text-primary font-weight-bold mb-0">{{ managerService.selectedCurrencySymbol() }}{{ selectedExpense.totalAmount | number:'1.2-2' }}</h3>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block">Submission Description</span>
+                <div class="bg-light rounded p-3 text-muted fs-8 border border-light-subtle mt-1">
+                  {{ selectedExpense.description }}
+                </div>
+              </div>
+
+              <!-- Itemized line items table -->
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block mb-2">Reimbursement Line Items</span>
+                <div class="table-responsive border border-light-subtle rounded">
+                  <table class="table custom-table mb-0 align-middle">
+                    <thead>
+                      <tr class="bg-light">
+                        <th style="width: 50%;">Item Description</th>
+                        <th style="width: 20%;">Category</th>
+                        <th style="width: 15%;" class="text-end">Cost</th>
+                        <th style="width: 15%;" class="text-center">Qty</th>
+                        <th style="width: 15%;" class="text-end">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of selectedExpense.items">
+                        <td><span class="text-dark fs-8">{{ item.name }}</span></td>
+                        <td><span class="text-muted fs-8">{{ item.category }}</span></td>
+                        <td class="text-end text-muted">{{ managerService.selectedCurrencySymbol() }}{{ item.cost | number:'1.2-2' }}</td>
+                        <td class="text-center text-muted">{{ item.quantity }}</td>
+                        <td class="text-end font-weight-bold text-dark">{{ managerService.selectedCurrencySymbol() }}{{ (item.cost * item.quantity) | number:'1.2-2' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Receipt Proof -->
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block mb-2">Audit Receipt Proof</span>
+                <div class="d-flex align-items-center gap-3 bg-light border border-light-subtle rounded p-3">
+                  <i class="bi bi-file-earmark-pdf-fill text-danger fs-2"></i>
+                  <div>
+                    <h6 class="text-dark mb-0 fs-8">RECEIPT_PROOF_{{ selectedExpense.id }}.pdf</h6>
+                    <small class="text-muted fs-9">Encrypted Digital Hash Attachment • 456 KB</small>
+                  </div>
+                  <button class="btn btn-sm btn-outline-secondary ms-auto">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- History Timeline -->
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block mb-1">Process Trail Timeline</span>
+                <div class="timeline-audit">
+                  <div *ngFor="let h of selectedExpenseHistory" class="timeline-audit-item">
+                    <span class="timeline-audit-badge" [ngClass]="h.action.toLowerCase()">
+                      <i class="bi" [ngClass]="{
+                        'bi-file-earmark-arrow-up': h.action === 'Submitted',
+                        'bi-check2': h.action === 'Approved',
+                        'bi-x': h.action === 'Rejected'
+                      }"></i>
+                    </span>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <strong class="text-dark fs-8">{{ h.action }}</strong>
+                      <span class="text-muted fs-9">{{ h.timestamp | date:'medium' }}</span>
+                    </div>
+                    <p class="text-muted fs-9 mb-0 mt-0.5">By {{ h.performedBy }} • {{ h.notes }}</p>
+                  </div>
+                  <!-- Current Action Pending state -->
+                  <div class="timeline-audit-item" *ngIf="selectedExpense.status === 'Pending'">
+                    <span class="timeline-audit-badge bg-warning-subtle text-warning-emphasis border-warning-warning-subtle">
+                      <i class="bi bi-hourglass-split"></i>
+                    </span>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <strong class="text-warning-emphasis fs-8">Pending Decision</strong>
+                      <span class="text-muted fs-9">Now</span>
+                    </div>
+                    <p class="text-muted fs-9 mb-0 mt-0.5">Under audit review by {{ managerName }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Audit Actions Panel -->
+              <div class="d-flex justify-content-end gap-3 border-top border-light-subtle pt-4 mt-4" *ngIf="selectedExpense.status === 'Pending'">
+                <button class="btn btn-danger px-4 font-weight-bold" (click)="openRejectModal()">
+                  <i class="bi bi-x-lg me-2"></i>Reject Claim
+                </button>
+                <button class="btn btn-primary-custom px-4" (click)="openApproveModal()">
+                  <i class="bi bi-check-lg me-2"></i>Approve Claim
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- APPROVAL HISTORY TAB -->
+      <section *ngIf="activeTab === 'approval-history'" class="fade-in">
+        <div class="glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="text-dark font-weight-bold mb-0">Processed Claim History Log</h5>
+          </div>
+
+          <!-- History Table -->
+          <div class="table-responsive border border-light-subtle rounded" *ngIf="managerService.globalHistory().length > 0; else noGlobalHistory">
+            <table class="table custom-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 15%;">Claim ID</th>
+                  <th style="width: 25%;">Auditor Decision</th>
+                  <th style="width: 20%;">Action Date</th>
+                  <th style="width: 15%;">Auditor</th>
+                  <th style="width: 25%;">Audit Comments / Rejection Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let h of managerService.globalHistory()">
+                  <td>
+                    <span class="text-muted fs-8 font-weight-bold">{{ h.expenseId }}</span>
+                  </td>
+                  <td>
+                    <span class="badge-status text-center" [ngClass]="{
+                      'approved': h.action === 'Approved',
+                      'rejected': h.action === 'Rejected'
+                    }">
+                      {{ h.action }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="text-muted fs-8">{{ h.timestamp | date:'mediumDate' }} • {{ h.timestamp | date:'shortTime' }}</span>
+                  </td>
+                  <td>
+                    <span class="text-dark fs-8">{{ h.performedBy }}</span>
+                  </td>
+                  <td>
+                    <div class="text-dark font-weight-bold fs-8 text-wrap" style="max-width: 300px;">
+                      {{ h.notes }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noGlobalHistory>
+            <div class="text-center py-5 border border-dashed border-light-subtle rounded my-4">
+              <i class="bi bi-clock-history fs-1 text-muted mb-2 d-block"></i>
+              <h5 class="text-dark">No Audit History Found</h5>
+              <p class="text-muted fs-8">You have not approved or rejected any expense claims in the current session.</p>
+            </div>
+          </ng-template>
+        </div>
+      </section>
+
+      <!-- MY PROFILE TAB -->
+      <section *ngIf="activeTab === 'profile'" class="fade-in">
+        <div class="row justify-content-center">
+          <div class="col-12 col-xl-8">
+            <div class="glass-card overflow-hidden p-0 mb-4">
+              <!-- Cover Header -->
+              <div class="profile-cover"></div>
+              
+              <!-- Form Body -->
+              <div class="p-4">
+                <h4 class="text-dark font-weight-bold mb-1">{{ profileForm.name }}</h4>
+                <p class="text-muted fs-8 mb-4">{{ profileForm.role }} • {{ profileForm.department }}</p>
+
+                <form (ngSubmit)="updateProfileDetails()" class="custom-form">
+                  <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Full Display Name</label>
+                      <input type="text" class="form-control custom-input" [(ngModel)]="profileForm.name" name="profName" required>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Corporate Email Address</label>
+                      <input type="email" class="form-control custom-input" [(ngModel)]="profileForm.email" name="profEmail" required>
+                    </div>
+                  </div>
+
+                  <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Department</label>
+                      <input type="text" class="form-control custom-input text-muted" [(ngModel)]="profileForm.department" name="profDept" readonly disabled title="Locked: Contact IT Admin to change department.">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Professional Role Designation</label>
+                      <input type="text" class="form-control custom-input text-muted" [(ngModel)]="profileForm.role" name="profRole" readonly disabled title="Locked: Contact IT Admin to change role designation.">
+                    </div>
+                  </div>
+
+                  <div class="alert alert-info border-info-subtle bg-info-subtle text-info-emphasis fs-8 d-flex align-items-center gap-2 mb-4">
+                    <i class="bi bi-info-circle-fill fs-6"></i>
+                    <div>
+                      Modifications to designation roles or base departments are audited and locked. Please request IT credentials updates for structural corporate hierarchy changes.
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary-custom px-4">Update Profile Credentials</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- APPROVAL CONFIRMATION MODAL -->
+  <div class="custom-modal-backdrop" *ngIf="showApproveConfirmModal" (click)="closeApproveModal()">
+    <div class="custom-modal p-4 text-center" style="max-width: 420px;" (click)="$event.stopPropagation()">
+      <i class="bi bi-question-circle text-primary fs-1 mb-2 d-block"></i>
+      <h5 class="text-dark mb-2">Confirm Requisition Approval</h5>
+      <p class="text-muted fs-8">Are you sure you want to approve this expense claim? Once approved, the claim will be forwarded to finance for reimbursement processing.</p>
+      
+      <div class="d-flex justify-content-center gap-3 mt-4">
+        <button class="btn btn-secondary-custom px-4 py-1.5" (click)="closeApproveModal()">Cancel</button>
+        <button class="btn btn-primary-custom px-4 py-1.5" (click)="confirmApprove()">Approve Claim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REJECTION REASON MODAL -->
+  <div class="custom-modal-backdrop" *ngIf="showRejectReasonModal" (click)="closeRejectModal()">
+    <div class="custom-modal p-4" style="max-width: 480px;" (click)="$event.stopPropagation()">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-light-subtle">
+        <h5 class="text-dark font-weight-bold mb-0">Provide Rejection Reason</h5>
+        <button class="btn btn-sm btn-link text-dark p-0 fs-4" (click)="closeRejectModal()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+      <p class="text-muted fs-8 mb-3">Rejection reason is mandatory. The employee will view this feedback when resolving their claim requisition details.</p>
+      
+      <div class="mb-4">
+        <label class="form-label font-weight-bold fs-9 mb-1">Mandatory Audit Comments <span class="text-danger">*</span></label>
+        <textarea class="form-control custom-input w-100" [(ngModel)]="rejectReason" name="reason" rows="4" placeholder="Specify why this expense is rejected (e.g., policy violation, duplicate receipt, incorrect category)..." required></textarea>
+      </div>
+
+      <div class="d-flex justify-content-end gap-3 border-top border-light-subtle pt-3">
+        <button class="btn btn-secondary-custom px-4" (click)="closeRejectModal()">Cancel</button>
+        <button class="btn btn-danger px-4 font-weight-bold" [disabled]="!rejectReason.trim()" (click)="confirmReject()">Reject Claim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS BANNER SYSTEM -->
+  <div class="toast-container-custom">
+    <div *ngFor="let t of toasts" class="toast-custom" [ngClass]="{
+      'error': t.type === 'error',
+      'info': t.type === 'info'
+    }">
+      <i class="bi fs-5" [ngClass]="{
+        'bi-check-circle-fill text-success': t.type === 'success',
+        'bi-exclamation-triangle-fill text-danger': t.type === 'error',
+        'bi-info-circle-fill text-primary': t.type === 'info'
+      }"></i>
+      <div class="flex-grow-1 fs-8 text-dark font-weight-bold">
+        {{ t.message }}
+      </div>
+      <button class="btn btn-sm btn-link text-muted p-0" (click)="removeToast(t.id)">
+        <i class="bi bi-x fs-6"></i>
+      </button>
+    </div>
+  </div>
+</div>

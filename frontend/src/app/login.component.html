@@ -1,0 +1,29 @@
+<section class="page-shell">
+  <div class="login-card">
+    <div class="brand-block">
+      <p class="eyebrow">Expense tracker</p>
+      <h1>Welcome back</h1>
+      <p class="subtitle">Sign in to manage your spending with clarity and confidence.</p>
+    </div>
+
+    <form class="login-form" (ngSubmit)="onSubmit()">
+      <label class="field">
+        <span>Username</span>
+        <input type="text" name="username" [(ngModel)]="username" placeholder="Enter username" required />
+      </label>
+
+      <label class="field">
+        <span>Password</span>
+        <input type="password" name="password" [(ngModel)]="password" placeholder="Enter password" required />
+      </label>
+
+      <p class="hint">Demo credentials: himesh / 123</p>
+
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Signing in...' : 'Login' }}
+      </button>
+
+      <p class="error" *ngIf="error">{{ error }}</p>
+    </form>
+  </div>
+</section>

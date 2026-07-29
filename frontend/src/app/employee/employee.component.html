@@ -1,0 +1,779 @@
+<div class="employee-portal">
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="btn btn-outline-dark border-light-subtle" (click)="showMobileSidebar = !showMobileSidebar">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <a href="#" class="brand-logo">
+      <i class="bi bi-wallet2 text-primary"></i>
+      <span>FirstPay Portal</span>
+    </a>
+    <div class="dropdown" *ngIf="employeeService.profile() as prof">
+      <img [src]="prof.avatarUrl" class="profile-avatar-sm" alt="Avatar" (click)="changeTab('profile')">
+    </div>
+  </header>
+
+  <!-- Sidebar Component -->
+  <aside class="sidebar" [class.show-mobile]="showMobileSidebar">
+    <div class="sidebar-brand">
+      <a href="#" class="brand-logo">
+        <i class="bi bi-wallet2 fs-3 text-primary"></i>
+        <span>Veripark Portal</span>
+      </a>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'dashboard'" (click)="changeTab('dashboard')">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'create-expense'" (click)="changeTab('create-expense')">
+          <i class="bi bi-plus-circle"></i>
+          <span>Create Expense</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'my-expenses'" (click)="changeTab('my-expenses')">
+          <i class="bi bi-receipt"></i>
+          <span>My Expenses</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'profile'" (click)="changeTab('profile')">
+          <i class="bi bi-person-badge"></i>
+          <span>My Profile</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-profile" *ngIf="employeeService.profile() as prof">
+      <div class="d-flex align-items-center gap-3">
+        <img [src]="prof.avatarUrl" class="profile-avatar-sm" alt="Avatar">
+        <div class="min-w-0 flex-grow-1">
+          <h6 class="mb-0 text-dark text-truncate">{{ prof.name }}</h6>
+          <small class="text-muted d-block text-truncate">{{ prof.role }}</small>
+        </div>
+        <button class="btn btn-link text-danger p-0" (click)="logout()" title="Logout">
+          <i class="bi bi-box-arrow-right fs-5"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    <!-- Top Nav Bar (Desktop Only) -->
+    <header class="top-bar">
+      <div class="d-flex align-items-center">
+        <h4 class="mb-0 font-weight-bold text-dark">
+          <span *ngIf="activeTab === 'dashboard'">Dashboard Overview</span>
+          <span *ngIf="activeTab === 'create-expense'">{{ isEditing ? 'Edit Expense Request' : 'File New Expense' }}</span>
+          <span *ngIf="activeTab === 'my-expenses'">Expense Claims Directory</span>
+          <span *ngIf="activeTab === 'profile'">Employee Profile Manager</span>
+        </h4>
+      </div>
+
+      <div class="d-flex align-items-center gap-4">
+        <!-- Budget Health Pill -->
+        <div class="d-flex align-items-center gap-2 bg-light px-3 py-1.5 rounded-pill border border-light-subtle" *ngIf="employeeService.profile() as prof">
+          <i class="bi bi-pie-chart text-warning"></i>
+          <span class="text-muted fs-7">Budget Remainder:</span>
+          <strong class="text-dark fs-7">{{ employeeService.selectedCurrencySymbol() }}{{ employeeService.remainingBudget() | number:'1.2-2' }}</strong>
+        </div>
+
+        <!-- Notification Dropdown -->
+        <div class="position-relative cursor-pointer">
+          <i class="bi bi-bell fs-5 text-muted hover-white"></i>
+          <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+        </div>
+
+        <button class="btn btn-sm btn-outline-danger px-3 py-1.5" (click)="logout()">
+          <i class="bi bi-box-arrow-right me-2"></i>Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Body Router Shell -->
+    <main class="content-body">
+      <!-- DASHBOARD TAB -->
+      <section *ngIf="activeTab === 'dashboard'" class="fade-in">
+        <!-- Rejected Alert Banner -->
+        <div class="alert alert-danger border-danger-subtle bg-danger-subtle text-danger-emphasis fs-8 d-flex align-items-center gap-2 mb-4" *ngIf="hasRejectedClaims">
+          <i class="bi bi-exclamation-octagon-fill fs-6 text-danger"></i>
+          <div>
+            <strong>Action Required:</strong> You have rejected expense claims. You can edit their amounts and resubmit them for manager audit.
+          </div>
+        </div>
+
+        <!-- KPI Card Grid -->
+        <div class="row g-4 mb-4">
+          <!-- Card 1: Budget Limit -->
+          <div class="col-12 col-md-6 col-xl-3" *ngIf="employeeService.profile() as prof">
+            <div class="glass-card kpi-card kpi-budget d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Monthly Budget Limit</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ employeeService.selectedCurrencySymbol() }}{{ prof.budgetLimit | number:'1.2-2' }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-wallet-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Total Approved Expenses -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-approved d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Total Approved Spent</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ employeeService.selectedCurrencySymbol() }}{{ employeeService.totalSpent() | number:'1.2-2' }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Pending Claims -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-pending d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Pending Reimbursement</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ employeeService.selectedCurrencySymbol() }}{{ employeeService.pendingAmount() | number:'1.2-2' }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Remaining Balance -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-total d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Available Allowance</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ employeeService.selectedCurrencySymbol() }}{{ employeeService.remainingBudget() | number:'1.2-2' }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-piggy-bank-fill"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts & Activity Row -->
+        <div class="row g-4">
+          <!-- Column 1: Category Breakdown Chart -->
+          <div class="col-12 col-lg-4">
+            <div class="glass-card h-100">
+              <h5 class="text-dark font-weight-bold mb-3">Expenses by Category</h5>
+              
+              <!-- SVG Donut Chart -->
+              <div class="chart-container mb-3" *ngIf="employeeService.totalSpent() > 0; else noApprovedData">
+                <svg width="200" height="200" viewBox="0 0 40 40" class="donut-chart">
+                  <circle cx="20" cy="20" r="15.9155" fill="transparent" stroke="#f1f5f9" stroke-width="6"></circle>
+                  
+                  <circle *ngFor="let segment of categoryChartSegments" 
+                          cx="20" cy="20" r="15.9155" 
+                          fill="transparent" 
+                          [attr.stroke]="segment.color" 
+                          stroke-width="7" 
+                          [attr.stroke-dasharray]="segment.strokeDashArray" 
+                          [attr.stroke-dashoffset]="segment.strokeDashOffset"
+                          class="donut-segment">
+                    <title>{{ segment.name }}: {{ employeeService.selectedCurrencySymbol() }}{{ segment.amount | number:'1.2-2' }} ({{ segment.percentage | number:'1.0-1' }}%)</title>
+                  </circle>
+
+                  <g class="donut-text">
+                    <text x="50%" y="45%" class="text-anchor-middle text-center" font-size="3" text-anchor="middle" font-weight="600">APPROVED</text>
+                    <text x="50%" y="58%" class="text-anchor-middle text-center" font-size="4" text-anchor="middle" font-weight="bold" fill="#3b82f6">{{ employeeService.selectedCurrencySymbol() }}{{ employeeService.totalSpent() | number:'1.0-0' }}</text>
+                  </g>
+                </svg>
+              </div>
+              <ng-template #noApprovedData>
+                <div class="chart-container d-flex flex-column align-items-center justify-content-center border border-secondary border-dashed rounded py-5 mb-3 text-center">
+                  <i class="bi bi-pie-chart fs-1 text-muted mb-2"></i>
+                  <p class="text-muted mb-0">No approved expense records found to render breakdown charts.</p>
+                </div>
+              </ng-template>
+
+              <!-- Category breakdown stats list -->
+              <ul class="chart-legend mt-2">
+                <li *ngFor="let segment of categoryChartSegments" class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="legend-color" [style.background-color]="segment.color"></span>
+                    <span class="text-muted fs-7">{{ segment.name }}</span>
+                  </div>
+                  <div class="text-end">
+                    <strong class="text-dark fs-7">{{ employeeService.selectedCurrencySymbol() }}{{ segment.amount | number:'1.2-2' }}</strong>
+                    <span class="text-muted fs-8 d-block">({{ segment.percentage | number:'1.0-1' }}%)</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Column 2: Monthly Trends Bar Chart -->
+          <div class="col-12 col-lg-5">
+            <div class="glass-card h-100">
+              <h5 class="text-dark font-weight-bold mb-3">6-Month Expenditure Trends</h5>
+              <p class="text-muted fs-7">Approved monthly claim volumes (USD)</p>
+
+              <!-- Custom CSS Bar Chart Component -->
+              <div class="bar-chart-visual" *ngIf="employeeService.expenses().length > 0; else noBarData">
+                <div *ngFor="let bar of monthlyBarChartData" class="bar-column">
+                  <div class="bar-tooltip">{{ employeeService.selectedCurrencySymbol() }}{{ bar.value | number:'1.0-0' }}</div>
+                  <div class="bar-fill" [style.height.%]="bar.heightPercentage"></div>
+                  <div class="bar-label">{{ bar.label }}</div>
+                </div>
+              </div>
+              <ng-template #noBarData>
+                <div class="bar-chart-visual d-flex align-items-center justify-content-center py-5 border border-light-subtle border-dashed rounded text-center">
+                  <p class="text-muted mb-0">No trend history available.</p>
+                </div>
+              </ng-template>
+
+                <div class="d-flex justify-content-between mt-4 border-top border-light-subtle pt-3">
+                <div class="text-center flex-grow-1 border-end border-light-subtle">
+                  <span class="text-muted fs-8 d-block">Claims Filed</span>
+                  <strong class="text-dark fs-5">{{ employeeService.expenses().length }}</strong>
+                </div>
+                <div class="text-center flex-grow-1">
+                  <span class="text-muted fs-8 d-block">Average / Month</span>
+                  <strong class="text-dark fs-5">{{ employeeService.selectedCurrencySymbol() }}{{ (employeeService.totalSpent() / 6) | number:'1.2-2' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Recent Activity Logs -->
+          <div class="col-12 col-lg-3">
+            <div class="glass-card h-100 d-flex flex-column">
+              <h5 class="text-dark font-weight-bold mb-3">Activity Stream</h5>
+              
+              <div class="timeline overflow-auto flex-grow-1 pe-2">
+                <div *ngFor="let activity of employeeService.activities()" class="timeline-item">
+                  <span class="timeline-dot" [ngClass]="activity.statusType"></span>
+                  <div class="d-flex justify-content-between align-items-start">
+                    <span class="timeline-time">{{ activity.timestamp | date:'shortTime' }} ({{ activity.timestamp | date:'MM/dd' }})</span>
+                  </div>
+                  <p class="timeline-content mb-0 mt-1 text-wrap">{{ activity.action }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CREATE / EDIT EXPENSE FORM TAB -->
+      <section *ngIf="activeTab === 'create-expense'" class="fade-in">
+        <div class="row justify-content-center">
+          <div class="col-12 col-xl-10">
+            <div class="glass-card">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-dark font-weight-bold mb-0">
+                  <i class="bi bi-file-earmark-diff text-primary me-2"></i>
+                  {{ isEditing ? 'Edit Expense Requisition ' + editingExpenseId : 'Initiate New Expense Claim' }}
+                </h5>
+                <button class="btn btn-sm btn-outline-secondary" (click)="resetExpenseForm(); changeTab('my-expenses')">
+                  Back to List
+                </button>
+              </div>
+
+              <form (ngSubmit)="submitExpenseForm()" class="custom-form">
+                <!-- Basic Header Details -->
+                <div class="row g-3 mb-4">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Expense Title / Reason <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control custom-input" [(ngModel)]="expenseTitle" name="title" placeholder="e.g. Server hosting, client lunch..." [disabled]="isEditingRejected" required>
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <label class="form-label">Expense Category <span class="text-danger">*</span></label>
+                    <select class="form-select custom-input" [(ngModel)]="expenseCategory" name="category" [disabled]="isEditingRejected">
+                      <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <label class="form-label">Transaction Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control custom-input" [(ngModel)]="expenseDate" name="date" [disabled]="isEditingRejected" required>
+                  </div>
+                </div>
+
+                <!-- Detailed Items List -->
+                <div class="mb-4">
+                  <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-3">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                      <label class="form-label mb-0 text-dark font-weight-bold">
+                        Itemized Breakdowns (Receipt Line Items) <span class="text-danger">*</span>
+                      </label>
+                      <div class="input-group input-group-sm rounded-pill overflow-hidden border border-light-subtle shadow-sm" style="max-width: 280px;">
+                        <span class="input-group-text bg-white border-0 text-muted ps-3">
+                          <i class="bi bi-globe2 text-primary"></i>
+                        </span>
+                        <input type="text"
+                               class="form-control form-control-sm border-0 bg-white"
+                               placeholder="Search country's currency..."
+                               list="countries-datalist"
+                               [ngModel]="countryInputText"
+                               (ngModelChange)="onCountryInputChange($event)"
+                               name="countrySearchInput">
+                        <span class="input-group-text bg-primary text-white border-0 font-weight-bold px-3">
+                          {{ employeeService.selectedCurrencySymbol() }}
+                        </span>
+                      </div>
+                      <datalist id="countries-datalist">
+                        <option *ngFor="let c of employeeService.countries" [value]="c.name">{{ c.code }} ({{ c.symbol }})</option>
+                      </datalist>
+                    </div>
+                    <button type="button" class="btn btn-xs btn-outline-primary py-1 px-2.5 rounded-pill fs-8" (click)="addNewItemRow()">
+                      <i class="bi bi-plus-lg me-1"></i>Add Item Row
+                    </button>
+                  </div>
+
+                  <div class="table-responsive border border-light-subtle rounded">
+                    <table class="table custom-table mb-0 align-middle">
+                      <thead>
+                        <tr>
+                          <th style="width: 45%;">Item / Service Name</th>
+                          <th style="width: 20%;">Category</th>
+                          <th style="width: 15%;">Unit Cost ({{ employeeService.selectedCurrencySymbol() }})</th>
+                          <th style="width: 10%;">Qty</th>
+                          <th style="width: 10%;" class="text-end">Subtotal</th>
+                          <th style="width: 10%;" class="text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let item of expenseItems; let i = index">
+                          <td>
+                            <input type="text" class="form-control form-control-sm custom-input bg-transparent" [(ngModel)]="item.name" [name]="'itemName_' + i" placeholder="e.g. EC2 Standard instance" required>
+                          </td>
+                          <td>
+                            <select class="form-select form-select-sm custom-input bg-transparent" [(ngModel)]="item.category" [name]="'itemCat_' + i">
+                              <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                            </select>
+                          </td>
+                          <td>
+                            <input type="number" class="form-control form-control-sm custom-input bg-transparent text-end" [(ngModel)]="item.cost" [name]="'itemCost_' + i" min="0.01" step="0.01" required>
+                          </td>
+                          <td>
+                            <input type="number" class="form-control form-control-sm custom-input bg-transparent text-center" [(ngModel)]="item.quantity" [name]="'itemQty_' + i" min="1" step="1" required>
+                          </td>
+                          <td class="text-end text-dark fs-8 font-weight-bold">
+                            {{ employeeService.selectedCurrencySymbol() }}{{ (item.cost * item.quantity) | number:'1.2-2' }}
+                          </td>
+                          <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="removeItemRow(i)" [disabled]="expenseItems.length <= 1">
+                              <i class="bi bi-trash fs-5"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr class="bg-light">
+                          <td colspan="4" class="text-end font-weight-bold text-dark">Requisition Total Amount:</td>
+                          <td class="text-end text-primary font-weight-bold fs-6">
+                            {{ employeeService.selectedCurrencySymbol() }}{{ formTotalAmount | number:'1.2-2' }}
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Additional Description & Notes -->
+                <div class="row g-3 mb-4">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Expense Description</label>
+                    <textarea class="form-control custom-input" [(ngModel)]="expenseDescription" name="description" rows="3" placeholder="Provide general reasoning or justification for auditing purposes." [disabled]="isEditingRejected"></textarea>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Internal Audit Notes (Optional)</label>
+                    <textarea class="form-control custom-input" [(ngModel)]="expenseNotes" name="notes" rows="3" placeholder="Reference procurement requests, manager pre-approvals here..."></textarea>
+                  </div>
+                </div>
+
+                <!-- Receipt Upload Zone Mock -->
+                <div class="mb-4">
+                  <label class="form-label">Attach Reimbursement Receipt (PDF, PNG, JPG)</label>
+                  <div class="border border-light-subtle border-dashed rounded p-4 text-center cursor-pointer position-relative hover-border-primary" style="background-color: rgba(0,0,0,0.02)">
+                    <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer" (change)="handleReceiptUpload($event)">
+                    <div class="d-flex flex-column align-items-center">
+                      <i class="bi bi-cloud-upload fs-1 text-primary mb-2"></i>
+                      <p class="text-dark mb-1">Click to browse or drop receipt file here</p>
+                      <p class="text-muted fs-8 mb-0">PDF, PNG, JPG up to 10MB</p>
+                      <div class="mt-2 bg-light px-3 py-1 border border-light-subtle rounded text-muted fs-8" *ngIf="receiptMockName">
+                        <i class="bi bi-file-earmark-check text-success me-2"></i>{{ receiptMockName }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Alert message if budget threshold is close -->
+                <div class="alert alert-warning border-warning-subtle bg-warning-subtle text-warning-emphasis d-flex align-items-center gap-2 mb-4" 
+                     *ngIf="formTotalAmount > employeeService.remainingBudget()">
+                  <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                  <div>
+                    <strong>Budget Limit Alert:</strong> This claim of {{ employeeService.selectedCurrencySymbol() }}{{ formTotalAmount | number:'1.2-2' }} exceeds your remaining monthly allocation allowance of {{ employeeService.selectedCurrencySymbol() }}{{ employeeService.remainingBudget() | number:'1.2-2' }}. Audit approval overrides may apply.
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3">
+                  <button type="button" class="btn btn-secondary-custom px-4" (click)="resetExpenseForm(); changeTab('my-expenses')">Cancel</button>
+                  <button type="submit" class="btn btn-primary-custom px-4">{{ isEditing ? 'Save Requisition' : 'Submit Claim Request' }}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MY EXPENSES TAB (LIST VIEW) -->
+      <section *ngIf="activeTab === 'my-expenses'" class="fade-in">
+        <div class="glass-card mb-4">
+          <!-- Search & Filter Ribbon -->
+          <div class="row g-3 align-items-center">
+            <div class="col-12 col-md-5">
+              <div class="input-group">
+                <span class="input-group-text bg-light border-light-subtle text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control custom-input" [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()" placeholder="Search expenses by ID, title, description...">
+              </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <select class="form-select custom-input" [(ngModel)]="filterCategory" (ngModelChange)="onFilterChange()">
+                <option value="">All Categories</option>
+                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <select class="form-select custom-input" [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()">
+                <option value="">All Statuses</option>
+                <option value="Pending">Pending Audit</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div class="col-12 col-md-1 text-md-end">
+              <button class="btn btn-primary-custom w-100 px-0" (click)="resetExpenseForm(); changeTab('create-expense')">
+                <i class="bi bi-plus-lg"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <!-- Table -->
+          <div class="table-responsive">
+            <table class="table custom-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 10%;">Claim ID</th>
+                  <th style="width: 30%;">Title / Merchant</th>
+                  <th style="width: 15%;">Transaction Date</th>
+                  <th style="width: 15%;">Category</th>
+                  <th style="width: 12%;" class="text-end">Total Spent</th>
+                  <th style="width: 10%;" class="text-center">Status</th>
+                  <th style="width: 8%;" class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let expense of paginatedExpenses">
+                  <td><code class="text-info fs-8 font-weight-bold">{{ expense.id }}</code></td>
+                  <td>
+                    <span class="text-dark d-block font-weight-bold">{{ expense.title }}</span>
+                    <span class="text-muted fs-8 text-truncate d-inline-block" style="max-width: 250px;">{{ expense.description }}</span>
+                  </td>
+                  <td>{{ expense.date | date:'mediumDate' }}</td>
+                  <td>
+                    <span class="fs-8 text-muted">{{ expense.category }}</span>
+                  </td>
+                  <td class="text-end text-dark font-weight-bold">{{ employeeService.selectedCurrencySymbol() }}{{ expense.totalAmount | number:'1.2-2' }}</td>
+                  <td class="text-center">
+                    <span class="badge-status" 
+                          [ngClass]="{
+                            'pending': expense.status === 'Pending',
+                            'approved': expense.status === 'Approved',
+                            'rejected': expense.status === 'Rejected',
+                            'paid': expense.status === 'Paid',
+                            'draft': expense.status === 'Draft'
+                          }">
+                      {{ expense.status === 'Pending' ? 'Pending Audit' : expense.status }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown" id="dropdownMenuButton_{{expense.id}}">
+                        <i class="bi bi-three-dots-vertical fs-5"></i>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end border-light-subtle bg-white" [attr.aria-labelledby]="'dropdownMenuButton_' + expense.id">
+                        <li>
+                          <a class="dropdown-item cursor-pointer text-dark fs-8 py-2" (click)="openDetails(expense)">
+                            <i class="bi bi-eye text-primary me-2"></i>View Claim Details
+                          </a>
+                        </li>
+                        <li *ngIf="expense.status === 'Pending'">
+                          <a class="dropdown-item cursor-pointer text-dark fs-8 py-2" (click)="openEditForm(expense)">
+                            <i class="bi bi-pencil-square text-warning me-2"></i>Modify Requisition
+                          </a>
+                        </li>
+                        <li *ngIf="expense.status === 'Pending'">
+                          <a class="dropdown-item cursor-pointer text-danger fs-8 py-2" (click)="openDeleteConfirm(expense.id)">
+                            <i class="bi bi-trash me-2"></i>Delete Requisition
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="filteredExpenses.length === 0">
+                  <td colspan="7" class="text-center py-5 text-muted">
+                    <i class="bi bi-folder-x fs-1 mb-2 d-block"></i>
+                    No matching expense claims found.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Controls -->
+          <div class="d-flex justify-content-between align-items-center mt-4 border-top border-light-subtle pt-3" *ngIf="filteredExpenses.length > 0">
+            <span class="text-muted fs-8">
+              Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, filteredExpenses.length) }} of {{ filteredExpenses.length }} claims
+            </span>
+            <nav>
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link bg-light border-light-subtle text-dark" (click)="changePage(currentPage - 1)">Previous</button>
+                </li>
+                <li class="page-item" *ngFor="let page of getPagesArray()" [class.active]="currentPage === page">
+                  <button class="page-link bg-light border-light-subtle text-dark" (click)="changePage(page)">{{ page }}</button>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link bg-light border-light-subtle text-dark" (click)="changePage(currentPage + 1)">Next</button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </section>
+
+      <!-- EMPLOYEE PROFILE TAB -->
+      <section *ngIf="activeTab === 'profile'" class="fade-in">
+        <div class="row g-4 justify-content-center">
+          <div class="col-12 col-md-5">
+            <div class="glass-card">
+              <!-- Visual Card Cover -->
+              <div class="profile-cover rounded-top margin-n-1.5"></div>
+              
+              <!-- Profile Avatar Placement -->
+              <div class="profile-avatar-container text-center">
+                <img [src]="profileForm.avatarUrl" class="profile-avatar-lg" alt="Avatar">
+                <h4 class="text-dark mt-3 mb-0">{{ profileForm.name }}</h4>
+                <p class="text-primary mb-1">{{ profileForm.role }}</p>
+                <span class="badge bg-light border border-light-subtle text-dark fs-8">{{ profileForm.department }}</span>
+              </div>
+
+              <!-- General metadata details read-only -->
+              <div class="mt-4 border-top border-light-subtle pt-3">
+                <div class="profile-detail-row">
+                  <span class="profile-detail-label">Employee Card ID</span>
+                  <span class="profile-detail-value">{{ profileForm.employeeId }}</span>
+                </div>
+                <div class="profile-detail-row">
+                  <span class="profile-detail-label">Authorized Budget</span>
+                  <span class="profile-detail-value text-primary">{{ employeeService.selectedCurrencySymbol() }}{{ profileForm.budgetLimit | number:'1.2-2' }}</span>
+                </div>
+                <div class="profile-detail-row">
+                  <span class="profile-detail-label">Accumulated Spent</span>
+                  <span class="profile-detail-value text-success">{{ employeeService.selectedCurrencySymbol() }}{{ employeeService.totalSpent() | number:'1.2-2' }}</span>
+                </div>
+                <div class="profile-detail-row">
+                  <span class="profile-detail-label">Office Location</span>
+                  <span class="profile-detail-value">Bengaluru Office HQ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-7">
+            <div class="glass-card">
+              <h5 class="text-dark font-weight-bold mb-4">Edit Profile & Contact Details</h5>
+
+              <form (ngSubmit)="updateProfileDetails()" class="custom-form">
+                <div class="row g-3 mb-3">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Full Display Name</label>
+                    <input type="text" class="form-control custom-input" [(ngModel)]="profileForm.name" name="profName" required>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Corporate Email Address</label>
+                    <input type="email" class="form-control custom-input" [(ngModel)]="profileForm.email" name="profEmail" required>
+                  </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Department</label>
+                    <input type="text" class="form-control custom-input text-muted" [(ngModel)]="profileForm.department" name="profDept" readonly disabled title="Locked: Contact IT Admin to change department.">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Professional Role Designation</label>
+                    <input type="text" class="form-control custom-input text-muted" [(ngModel)]="profileForm.role" name="profRole" readonly disabled title="Locked: Contact IT Admin to change role designation.">
+                  </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Avatar Image URL</label>
+                    <input type="url" class="form-control custom-input" [(ngModel)]="profileForm.avatarUrl" name="profAvatar">
+                  </div>
+                  <div class="col-12 col-md-6">
+                     <label class="form-label">Monthly Allowance Limit ({{ employeeService.selectedCurrencySymbol() }})</label>
+                    <input type="number" class="form-control custom-input" [(ngModel)]="profileForm.budgetLimit" name="profLimit" required>
+                  </div>
+                </div>
+
+                <div class="alert alert-info border-info-subtle bg-info-subtle text-info-emphasis fs-8 d-flex align-items-center gap-2 mb-4">
+                  <i class="bi bi-info-circle-fill fs-6"></i>
+                  <div>
+                    Modifications to designation roles or base departments are audited and locked. Please request IT credentials updates for structural corporate hierarchy changes.
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                  <button type="submit" class="btn btn-primary-custom px-4">Update Profile Credentials</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- VIEWS DETAILS MODAL -->
+  <div class="custom-modal-backdrop" *ngIf="showDetailsModal && selectedExpense" (click)="closeDetailsModal()">
+    <div class="custom-modal p-4" (click)="$event.stopPropagation()">
+      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-light-subtle pb-3">
+        <div>
+          <span class="text-muted fs-8 font-weight-bold">Claim ID: {{ selectedExpense.id }}</span>
+          <h4 class="text-dark mb-0 mt-1">{{ selectedExpense.title }}</h4>
+        </div>
+        <button class="btn btn-sm btn-link text-dark p-0 fs-4" (click)="closeDetailsModal()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <label class="text-muted fs-8 d-block mb-0.5">Filing Status</label>
+          <span class="badge-status text-center d-inline-block px-3" 
+                [ngClass]="{
+                  'pending': selectedExpense.status === 'Pending',
+                  'approved': selectedExpense.status === 'Approved',
+                  'rejected': selectedExpense.status === 'Rejected',
+                  'paid': selectedExpense.status === 'Paid',
+                  'draft': selectedExpense.status === 'Draft'
+                }">
+            {{ selectedExpense.status === 'Pending' ? 'Pending Audit' : selectedExpense.status }}
+          </span>
+        </div>
+        <div class="col-6 text-end">
+          <label class="text-muted fs-8 d-block mb-0.5">Total Amount Claimed</label>
+          <h4 class="text-primary font-weight-bold mb-0">{{ employeeService.selectedCurrencySymbol() }}{{ selectedExpense.totalAmount | number:'1.2-2' }}</h4>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="row g-3">
+          <div class="col-6">
+            <span class="text-muted fs-8 d-block">Transaction Date</span>
+            <strong class="text-dark">{{ selectedExpense.date | date:'longDate' }}</strong>
+          </div>
+          <div class="col-6">
+            <span class="text-muted fs-8 d-block">Category Directory</span>
+            <strong class="text-dark">{{ selectedExpense.category }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4" *ngIf="selectedExpense.description">
+        <span class="text-muted fs-8 d-block">Filing Description / Business Reason</span>
+        <div class="bg-light rounded p-3 text-muted fs-8 border border-light-subtle mt-1">
+          {{ selectedExpense.description }}
+        </div>
+      </div>
+
+      <div class="mb-4" *ngIf="selectedExpense.notes">
+        <span class="text-muted fs-8 d-block">Auditor Remarks / Action Notes</span>
+        <div class="bg-warning-subtle border border-warning-subtle rounded p-3 text-warning-emphasis fs-8 mt-1">
+          <i class="bi bi-chat-right-quote-fill me-2 text-warning"></i>
+          {{ selectedExpense.notes }}
+        </div>
+      </div>
+
+      <!-- Itemized Breakdown table -->
+      <div class="mb-4" *ngIf="selectedExpense.items && selectedExpense.items.length > 0">
+        <span class="text-muted fs-8 d-block mb-2">Itemized Breakdown</span>
+        <div class="table-responsive border border-light-subtle rounded">
+          <table class="table custom-table mb-0 align-middle">
+            <thead>
+              <tr class="bg-light">
+                <th style="width: 50%;">Item Details</th>
+                <th style="width: 20%;">Category</th>
+                <th style="width: 15%;" class="text-end">Cost</th>
+                <th style="width: 15%;" class="text-center">Qty</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedExpense.items">
+                <td><span class="text-dark fs-8">{{ item.name }}</span></td>
+                <td><span class="text-muted fs-8">{{ item.category }}</span></td>
+                <td class="text-end font-weight-bold text-muted">{{ employeeService.selectedCurrencySymbol() }}{{ item.cost | number:'1.2-2' }}</td>
+                <td class="text-center text-muted">{{ item.quantity }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Receipt mock display -->
+      <div class="mb-4">
+        <span class="text-muted fs-8 d-block mb-2">Audit Receipt Proof</span>
+        <div class="d-flex align-items-center gap-3 bg-light border border-light-subtle rounded p-3">
+          <i class="bi bi-file-earmark-pdf-fill text-danger fs-1"></i>
+          <div>
+            <h6 class="text-dark mb-0 fs-8">RECEIPT_PROOF_{{ selectedExpense.id }}.pdf</h6>
+            <small class="text-muted fs-9">Encrypted Digital Hash Attachment • 456 KB</small>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary ms-auto">
+            <i class="bi bi-download"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end border-top border-light-subtle pt-3 mt-4">
+        <button class="btn btn-secondary-custom px-4" (click)="closeDetailsModal()">Close Details View</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div class="custom-modal-backdrop" *ngIf="showDeleteConfirmModal" (click)="closeDeleteConfirm()">
+    <div class="custom-modal p-4 text-center" style="max-width: 400px;" (click)="$event.stopPropagation()">
+      <i class="bi bi-exclamation-octagon text-danger fs-1 mb-2 d-block"></i>
+      <h5 class="text-dark mb-2">Confirm Delete Requisition</h5>
+      <p class="text-muted fs-8">Are you sure you want to permanently delete this pending expense claim? This action cannot be undone.</p>
+      
+      <div class="d-flex justify-content-center gap-3 mt-4">
+        <button class="btn btn-secondary-custom px-4 py-1.5" (click)="closeDeleteConfirm()">Cancel</button>
+        <button class="btn btn-danger px-4 py-1.5 font-weight-bold" (click)="confirmDelete()">Delete Claim</button>
+      </div>
+    </div>
+  </div>
+</div>
