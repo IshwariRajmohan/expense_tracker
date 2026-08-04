@@ -15,6 +15,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<ExpenseItem> ExpenseItems { get; set; } = null!;
     public DbSet<ActivityLog> ActivityLogs { get; set; } = null!;
     public DbSet<UserCredential> UserCredentials { get; set; } = null!;
+    public DbSet<ApprovalHistory> ApprovalHistories { get; set; } = null!;
+    public DbSet<FreezeDateSetting> FreezeDateSettings { get; set; } = null!;
+    public DbSet<SystemSettings> SystemSettings { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,6 +31,12 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.EmployeeId).HasColumnType("varchar(50)");
             entity.Property(e => e.BudgetLimit).HasPrecision(18, 2);
             entity.Property(e => e.SpentAmount).HasPrecision(18, 2);
+            entity.Property(e => e.ManagerId).HasColumnType("varchar(50)");
+
+            entity.HasOne<UserProfile>()
+                  .WithMany()
+                  .HasForeignKey(e => e.ManagerId)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         // Expenses table configuration
@@ -37,7 +46,8 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasColumnType("varchar(50)");
             entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
-            
+            entity.Property<string?>("EmployeeId").HasColumnType("varchar(50)");
+
             // One-to-many relationship with ExpenseItems
             entity.HasMany(e => e.Items)
                   .WithOne()
@@ -72,6 +82,31 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Password).HasMaxLength(100);
             entity.Property(e => e.DisplayName).HasMaxLength(100);
             entity.Property(e => e.Role).HasMaxLength(50);
+        });
+
+        // ApprovalHistory table configuration
+        modelBuilder.Entity<ApprovalHistory>(entity =>
+        {
+            entity.ToTable("ApprovalHistory");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnType("varchar(50)");
+            entity.Property(e => e.ExpenseId).HasColumnType("varchar(50)");
+        });
+
+        // FreezeDateSettings table configuration
+        modelBuilder.Entity<FreezeDateSetting>(entity =>
+        {
+            entity.ToTable("FreezeDateSettings");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        // SystemSettings table configuration
+        modelBuilder.Entity<SystemSettings>(entity =>
+        {
+            entity.ToTable("SystemSettings");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
         });
     }
 }

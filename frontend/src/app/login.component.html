@@ -1,29 +1,40 @@
-<section class="page-shell">
-  <div class="login-card">
-    <div class="brand-block">
-      <p class="eyebrow">Expense tracker</p>
-      <h1>Welcome back</h1>
-      <p class="subtitle">Sign in to manage your spending with clarity and confidence.</p>
+<section class="login-wrapper">
+  <!-- Left Side: Image Banner -->
+  <div class="visual-panel">
+    <div class="visual-overlay"></div>
+    <img src="/login_illustration.png" alt="Expense Tracking Illustration" class="visual-image">
+    <div class="visual-text">
+      <h2 class="text-white font-weight-bold mb-2">Track Smart. Spend Wise.</h2>
+      <p class="text-white-50 mb-0 fs-8">Veripark Unified Enterprise Reimbursements Portal.</p>
     </div>
+  </div>
 
-    <form class="login-form" (ngSubmit)="onSubmit()">
-      <label class="field">
-        <span>Username</span>
-        <input type="text" name="username" [(ngModel)]="username" placeholder="Enter username" required />
-      </label>
+  <!-- Right Side: Login Form -->
+  <div class="form-panel">
+    <div class="form-container">
+      <div class="brand-block">
+        <p class="eyebrow">Veripark Portal</p>
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Sign in to manage your corporate expenses with absolute clarity and control.</p>
+      </div>
 
-      <label class="field">
-        <span>Password</span>
-        <input type="password" name="password" [(ngModel)]="password" placeholder="Enter password" required />
-      </label>
+      <form class="login-form" (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" [(ngModel)]="username" placeholder="Enter username" required />
+        </div>
 
-      <p class="hint">Demo credentials: himesh / 123</p>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" [(ngModel)]="password" placeholder="Enter password" required />
+        </div>
 
-      <button type="submit" [disabled]="loading">
-        {{ loading ? 'Signing in...' : 'Login' }}
-      </button>
+        <button type="submit" [disabled]="loading">
+          {{ loading ? 'Signing in...' : 'Sign In' }}
+        </button>
 
-      <p class="error" *ngIf="error">{{ error }}</p>
-    </form>
+        <p class="error" *ngIf="error">{{ error }}</p>
+      </form>
+    </div>
   </div>
 </section>

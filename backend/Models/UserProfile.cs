@@ -10,4 +10,5 @@ public class UserProfile
     public decimal BudgetLimit { get; set; }
     public decimal SpentAmount { get; set; }
     public string AvatarUrl { get; set; } = string.Empty;
+    public string? ManagerId { get; set; }
 }

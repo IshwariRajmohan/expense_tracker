@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -41,6 +41,10 @@ export class EmployeeComponent implements OnInit {
   showDeleteConfirmModal = false;
   deleteConfirmExpenseId = '';
 
+  // Notification State
+  showRejectedNotification = false;
+  rejectedCount = 0;
+
   // Filter & Pagination State
   searchQuery = '';
   filterCategory = '';
@@ -73,7 +77,18 @@ export class EmployeeComponent implements OnInit {
     public employeeService: EmployeeService,
     public authService: AuthService,
     private router: Router
-  ) {}
+  ) {
+    // Check for rejected expenses to show notification
+    effect(() => {
+      const rejected = this.employeeService.expenses().filter(e => e.status?.toLowerCase() === 'rejected');
+      if (rejected.length > 0) {
+        this.rejectedCount = rejected.length;
+        this.showRejectedNotification = true;
+      } else {
+        this.showRejectedNotification = false;
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.resetExpenseForm();
@@ -174,9 +189,16 @@ export class EmployeeComponent implements OnInit {
     if (this.isEditing) {
       const existing = this.employeeService.expenses().find(e => e.id === this.editingExpenseId);
       if (existing) {
+        let newStatus = existing.status;
+        const lowerStatus = existing.status?.toLowerCase();
+        if (lowerStatus === 'rejected' || lowerStatus === 'draft') {
+          newStatus = 'Pending';
+        }
+
         const updatedExpense: Expense = {
           ...existing,
-          ...expensePayload
+          ...expensePayload,
+          status: newStatus
         };
         this.employeeService.updateExpense(updatedExpense);
       }
@@ -189,6 +211,12 @@ export class EmployeeComponent implements OnInit {
 
     this.resetExpenseForm();
     this.activeTab = 'my-expenses';
+  }
+
+  get isEditingRejected(): boolean {
+    if (!this.isEditing || !this.editingExpenseId) return false;
+    const exp = this.employeeService.expenses().find(e => e.id === this.editingExpenseId);
+    return exp?.status?.toLowerCase() === 'rejected';
   }
 
   // --- CRUD Operations ---
@@ -239,6 +267,12 @@ export class EmployeeComponent implements OnInit {
     this.showDetailsModal = false;
   }
 
+  editRejectedClaim(expense: Expense): void {
+    this.showDetailsModal = false;
+    this.selectedExpense = null;
+    this.openEditForm(expense);
+  }
+
   // --- Search, Filtering & Pagination logic ---
   get filteredExpenses(): Expense[] {
     return this.employeeService.expenses().filter(e => {
@@ -282,7 +316,7 @@ export class EmployeeComponent implements OnInit {
 
   // --- Category Chart segments ---
   get categoryChartSegments() {
-    const expenses = this.employeeService.expenses().filter(e => e.status === 'Approved' || e.status === 'Paid');
+    const expenses = this.employeeService.expenses();
     const total = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
 
     const categoriesList = [
@@ -350,8 +384,7 @@ export class EmployeeComponent implements OnInit {
           const expYear = parseInt(parts[0], 10);
           const expMonth = parseInt(parts[1], 10) - 1; // 0-indexed
           
-          return (e.status === 'Approved' || e.status === 'Paid') &&
-                 expMonth === targetMonth &&
+          return expMonth === targetMonth &&
                  expYear === targetYear;
         })
         .reduce((sum, e) => sum + e.totalAmount, 0);

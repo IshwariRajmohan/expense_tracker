@@ -143,15 +143,9 @@ export class EmployeeService {
   updateExpense(updatedExpense: Expense): void {
     this.http.put<any>(`/api/employee/expenses/${updatedExpense.id}`, updatedExpense).subscribe({
       next: () => {
-        const current = this.expenses();
-        const index = current.findIndex(e => e.id === updatedExpense.id);
-        if (index !== -1) {
-          const updated = [...current];
-          updated[index] = updatedExpense;
-          this.expenses.set(updated);
-          this.loadActivities();
-          this.loadProfile();
-        }
+        this.loadExpenses();
+        this.loadActivities();
+        this.loadProfile();
       },
       error: (err) => console.error('Failed to update expense', err)
     });

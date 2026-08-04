@@ -534,6 +534,10 @@
 }
 
 /* Profile Panel Layout */
+.margin-n-1\.5 {
+  margin: -1.5rem -1.5rem 0 -1.5rem !important;
+}
+
 .profile-cover {
   height: 140px;
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -543,7 +547,8 @@
 .profile-avatar-container {
   margin-top: -60px;
   margin-bottom: 1.5rem;
-  padding-left: 1.5rem;
+  position: relative;
+  z-index: 5;
 }
 
 .profile-avatar-lg {

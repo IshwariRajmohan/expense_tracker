@@ -36,6 +36,9 @@ public class AuthController : ControllerBase
 
         if (user != null)
         {
+            CurrentUserState.Username = user.Username;
+            CurrentUserState.Role = user.Role;
+
             return Ok(new LoginResponse
             {
                 Success = true,

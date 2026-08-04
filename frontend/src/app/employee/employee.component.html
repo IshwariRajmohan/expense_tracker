@@ -163,7 +163,7 @@
               <h5 class="text-dark font-weight-bold mb-3">Expenses by Category</h5>
               
               <!-- SVG Donut Chart -->
-              <div class="chart-container mb-3" *ngIf="employeeService.totalSpent() > 0; else noApprovedData">
+              <div class="chart-container mb-3" *ngIf="employeeService.expenses().length > 0; else noApprovedData">
                 <svg width="200" height="200" viewBox="0 0 40 40" class="donut-chart">
                   <circle cx="20" cy="20" r="15.9155" fill="transparent" stroke="#f1f5f9" stroke-width="6"></circle>
                   
@@ -414,7 +414,11 @@
 
                 <div class="d-flex justify-content-end gap-3">
                   <button type="button" class="btn btn-secondary-custom px-4" (click)="resetExpenseForm(); changeTab('my-expenses')">Cancel</button>
-                  <button type="submit" class="btn btn-primary-custom px-4">{{ isEditing ? 'Save Requisition' : 'Submit Claim Request' }}</button>
+                  <button type="submit" class="btn btn-primary-custom px-4">
+                    <span *ngIf="!isEditing">Submit Claim Request</span>
+                    <span *ngIf="isEditing && isEditingRejected">Resubmit Claim</span>
+                    <span *ngIf="isEditing && !isEditingRejected">Save Requisition</span>
+                  </button>
                 </div>
               </form>
             </div>
@@ -474,7 +478,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let expense of paginatedExpenses">
+                <tr *ngFor="let expense of paginatedExpenses" class="cursor-pointer" (click)="openDetails(expense)" title="Click to view detailed claim summary">
                   <td><code class="text-info fs-8 font-weight-bold">{{ expense.id }}</code></td>
                   <td>
                     <span class="text-dark d-block font-weight-bold">{{ expense.title }}</span>
@@ -498,7 +502,7 @@
                     </span>
                   </td>
                   <td class="text-center">
-                    <div class="dropdown">
+                    <div class="dropdown" (click)="$event.stopPropagation()">
                       <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown" id="dropdownMenuButton_{{expense.id}}">
                         <i class="bi bi-three-dots-vertical fs-5"></i>
                       </button>
@@ -508,12 +512,12 @@
                             <i class="bi bi-eye text-primary me-2"></i>View Claim Details
                           </a>
                         </li>
-                        <li *ngIf="expense.status === 'Pending'">
+                        <li *ngIf="expense.status?.toLowerCase() === 'draft' || expense.status?.toLowerCase() === 'rejected'">
                           <a class="dropdown-item cursor-pointer text-dark fs-8 py-2" (click)="openEditForm(expense)">
                             <i class="bi bi-pencil-square text-warning me-2"></i>Modify Requisition
                           </a>
                         </li>
-                        <li *ngIf="expense.status === 'Pending'">
+                        <li *ngIf="expense.status?.toLowerCase() === 'draft'">
                           <a class="dropdown-item cursor-pointer text-danger fs-8 py-2" (click)="openDeleteConfirm(expense.id)">
                             <i class="bi bi-trash me-2"></i>Delete Requisition
                           </a>
@@ -656,9 +660,16 @@
           <span class="text-muted fs-8 font-weight-bold">Claim ID: {{ selectedExpense.id }}</span>
           <h4 class="text-dark mb-0 mt-1">{{ selectedExpense.title }}</h4>
         </div>
-        <button class="btn btn-sm btn-link text-dark p-0 fs-4" (click)="closeDetailsModal()">
-          <i class="bi bi-x"></i>
-        </button>
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-sm btn-warning px-3 py-1.5 fs-8 font-weight-bold text-dark rounded-pill shadow-sm" 
+                  *ngIf="selectedExpense.status?.toLowerCase() === 'rejected'" 
+                  (click)="editRejectedClaim(selectedExpense)">
+            <i class="bi bi-pencil-square me-2"></i>Edit
+          </button>
+          <button class="btn btn-sm btn-link text-dark p-0 fs-4" (click)="closeDetailsModal()">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
       </div>
 
       <div class="row g-3 mb-4">
@@ -765,6 +776,25 @@
       <div class="d-flex justify-content-center gap-3 mt-4">
         <button class="btn btn-secondary-custom px-4 py-1.5" (click)="closeDeleteConfirm()">Cancel</button>
         <button class="btn btn-danger px-4 py-1.5 font-weight-bold" (click)="confirmDelete()">Delete Claim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REJECTED CLAIM TOAST NOTIFICATION -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;" *ngIf="showRejectedNotification">
+    <div class="glass-card d-flex align-items-center gap-3 border-danger shadow" style="max-width: 420px; background: rgba(255, 241, 242, 0.98); border-left: 5px solid #f43f5e !important; padding: 1.25rem; border-radius: 1rem;">
+      <div class="bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+        <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+      </div>
+      <div class="flex-grow-1 min-w-0">
+        <h6 class="text-dark font-weight-bold mb-1">Expense Claim Rejected</h6>
+        <p class="text-muted fs-8 mb-0">You have {{ rejectedCount }} claim(s) that require revision.</p>
+      </div>
+      <div class="d-flex flex-column gap-1">
+        <button class="btn btn-sm btn-danger rounded-pill px-3 fs-9 py-1" (click)="showRejectedNotification = false; changeTab('my-expenses'); filterStatus = 'Rejected'; onFilterChange()">
+          Review
+        </button>
+        <button class="btn btn-sm btn-link text-muted p-0 fs-9 text-decoration-none" (click)="showRejectedNotification = false">Dismiss</button>
       </div>
     </div>
   </div>

@@ -19,17 +19,6 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  validateCredentials(username: string, password: string): { success: boolean; name: string; role: string } | null {
-    const u = username.trim().toLowerCase();
-    if (u === 'himesh' && password === '123') {
-      return { success: true, name: 'Himeshwar', role: 'Employee' };
-    }
-    if (u === 'manager' && password === '123') {
-      return { success: true, name: 'Ishwari Rajmohan', role: 'Manager' };
-    }
-    return null;
-  }
-
   login(username: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.apiUrl, { username, password }).pipe(
       tap((response) => {
@@ -39,25 +28,10 @@ export class AuthService {
         }
       }),
       catchError((error: HttpErrorResponse) => {
-        const creds = this.validateCredentials(username, password);
-        const fallback = creds
-          ? {
-              success: true,
-              message: 'Login successful',
-              name: creds.name,
-              role: creds.role
-            }
-          : {
-              success: false,
-              message: 'Invalid username or password.'
-            };
-
-        if (fallback.success) {
-          this.currentUserName.set(fallback.name ?? 'Himeshwar');
-          this.currentUserRole.set(fallback.role ?? 'Employee');
-        }
-
-        return of(fallback);
+        return of({
+          success: false,
+          message: error.error?.message || 'Invalid username or password.'
+        });
       })
     );
   }

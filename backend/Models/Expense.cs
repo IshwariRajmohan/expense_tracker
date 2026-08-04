@@ -13,4 +13,5 @@ public class Expense
     public decimal TotalAmount { get; set; }
     public string Status { get; set; } = "Pending"; // "Draft", "Pending", "Approved", "Rejected", "Paid"
     public string? Notes { get; set; }
+    public string? PaymentDate { get; set; }
 }

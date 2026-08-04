@@ -30,6 +30,10 @@ export class LoginComponent {
         if (response.success) {
           if (response.role === 'Manager') {
             this.router.navigateByUrl('/manager');
+          } else if (response.role === 'Accountant') {
+            this.router.navigateByUrl('/accountant');
+          } else if (response.role === 'Admin') {
+            this.router.navigateByUrl('/admin');
           } else {
             this.router.navigateByUrl('/user');
           }

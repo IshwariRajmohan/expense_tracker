@@ -32,7 +32,7 @@ public class EmployeeService : IEmployeeService
         return $"EXP-{maxNum + 1}";
     }
 
-    private async Task<string> GenerateNextItemIdAsync()
+    private async Task<string> GenerateNextItemIdAsync(int offset = 0)
     {
         var maxId = await _context.ExpenseItems
             .Select(i => i.Id)
@@ -43,7 +43,7 @@ public class EmployeeService : IEmployeeService
             .DefaultIfEmpty(0)
             .Max();
 
-        return $"ITM-{maxNum + 1}";
+        return $"ITM-{maxNum + 1 + offset}";
     }
 
     private async Task AddActivityLogAsync(string action, string statusType)
@@ -71,39 +71,27 @@ public class EmployeeService : IEmployeeService
 
     public async Task<DashboardSummaryDto> GetDashboardSummaryAsync()
     {
-        var expenses = await _context.Expenses.Include(e => e.Items).ToListAsync();
+        var profile = await GetProfileAsync();
+        var expenses = await _context.Expenses
+            .Include(e => e.Items)
+            .Where(e => EF.Property<string>(e, "EmployeeId") == profile.EmployeeId)
+            .ToListAsync();
         var approvedExpenses = expenses.Where(e => e.Status == "Approved" || e.Status == "Paid").ToList();
         var totalAmount = approvedExpenses.Sum(e => e.TotalAmount);
 
-        // Compute monthly trends dynamically for the last 6 months (Feb to July 2026)
-        var monthsList = new[] { "Feb", "Mar", "Apr", "May", "Jun", "Jul" };
+        // Compute monthly trends dynamically for the last 6 months (relative to today)
         var monthlyChart = new List<ChartDataPointDto>();
-        
-        foreach (var m in monthsList)
+        for (int i = 5; i >= 0; i--)
         {
-            decimal value = 0;
-            switch (m)
-            {
-                case "Feb":
-                    value = expenses.Where(e => (e.Status == "Approved" || e.Status == "Paid") && e.Date.StartsWith("2026-02")).Sum(e => e.TotalAmount);
-                    break;
-                case "Mar":
-                    value = expenses.Where(e => (e.Status == "Approved" || e.Status == "Paid") && e.Date.StartsWith("2026-03")).Sum(e => e.TotalAmount);
-                    break;
-                case "Apr":
-                    value = expenses.Where(e => (e.Status == "Approved" || e.Status == "Paid") && e.Date.StartsWith("2026-04")).Sum(e => e.TotalAmount);
-                    break;
-                case "May":
-                    value = expenses.Where(e => (e.Status == "Approved" || e.Status == "Paid") && e.Date.StartsWith("2026-05")).Sum(e => e.TotalAmount);
-                    break;
-                case "Jun":
-                    value = expenses.Where(e => (e.Status == "Approved" || e.Status == "Paid") && e.Date.StartsWith("2026-06")).Sum(e => e.TotalAmount);
-                    break;
-                case "Jul":
-                    value = expenses.Where(e => (e.Status == "Approved" || e.Status == "Paid") && e.Date.StartsWith("2026-07")).Sum(e => e.TotalAmount);
-                    break;
-            }
-            monthlyChart.Add(new ChartDataPointDto { Label = m, Value = value });
+            var targetDate = DateTime.UtcNow.AddMonths(-i);
+            var monthName = targetDate.ToString("MMM");
+            var monthPrefix = targetDate.ToString("yyyy-MM");
+
+            var value = expenses
+                .Where(e => e.Date.StartsWith(monthPrefix))
+                .Sum(e => e.TotalAmount);
+
+            monthlyChart.Add(new ChartDataPointDto { Label = monthName, Value = value });
         }
 
         // Compute status chart counts & amounts
@@ -150,8 +138,10 @@ public class EmployeeService : IEmployeeService
 
     public async Task<IEnumerable<Expense>> GetAllExpensesAsync()
     {
+        var profile = await GetProfileAsync();
         return await _context.Expenses
             .Include(e => e.Items)
+            .Where(e => EF.Property<string>(e, "EmployeeId") == profile.EmployeeId)
             .OrderByDescending(e => e.Id)
             .ToListAsync();
     }
@@ -166,30 +156,28 @@ public class EmployeeService : IEmployeeService
     private async Task<Expense> SaveOrUpdateExpenseInternalAsync(Expense expense, string status)
     {
         // Get the single user profile to associate
-        var profile = await _context.UserProfiles.FirstOrDefaultAsync();
+        var profile = await GetProfileAsync();
 
         if (string.IsNullOrEmpty(expense.Id))
         {
             expense.Id = await GenerateNextExpenseIdAsync();
             expense.Status = status;
 
-            // Set foreign keys on new elements
-            if (profile != null)
-            {
-                // Note: The database script has a nullable EmployeeId column for multi-user extensions.
-                // We populate it silently under the hood.
-                _context.Entry(expense).Property("EmployeeId").CurrentValue = profile.EmployeeId;
-            }
-
+            int itemIndex = 0;
             foreach (var item in expense.Items)
             {
                 if (string.IsNullOrEmpty(item.Id))
                 {
-                    item.Id = await GenerateNextItemIdAsync();
+                    item.Id = await GenerateNextItemIdAsync(itemIndex++);
                 }
                 item.ExpenseId = expense.Id;
             }
             _context.Expenses.Add(expense);
+
+            if (profile != null)
+            {
+                _context.Entry(expense).Property("EmployeeId").CurrentValue = profile.EmployeeId;
+            }
         }
         else
         {
@@ -200,20 +188,22 @@ public class EmployeeService : IEmployeeService
             if (existing == null)
             {
                 expense.Status = status;
-                if (profile != null)
-                {
-                    _context.Entry(expense).Property("EmployeeId").CurrentValue = profile.EmployeeId;
-                }
 
+                int itemIndex = 0;
                 foreach (var item in expense.Items)
                 {
                     if (string.IsNullOrEmpty(item.Id))
                     {
-                        item.Id = await GenerateNextItemIdAsync();
+                        item.Id = await GenerateNextItemIdAsync(itemIndex++);
                     }
                     item.ExpenseId = expense.Id;
                 }
                 _context.Expenses.Add(expense);
+
+                if (profile != null)
+                {
+                    _context.Entry(expense).Property("EmployeeId").CurrentValue = profile.EmployeeId;
+                }
             }
             else
             {
@@ -238,11 +228,12 @@ public class EmployeeService : IEmployeeService
                 }
 
                 // Add or update items
+                int incomingIndex = 0;
                 foreach (var incomingItem in incomingItems)
                 {
                     if (string.IsNullOrEmpty(incomingItem.Id))
                     {
-                        incomingItem.Id = await GenerateNextItemIdAsync();
+                        incomingItem.Id = await GenerateNextItemIdAsync(incomingIndex++);
                         incomingItem.ExpenseId = existing.Id;
                         existing.Items.Add(incomingItem);
                     }
@@ -311,6 +302,22 @@ public class EmployeeService : IEmployeeService
         existing.TotalAmount = expense.TotalAmount;
         existing.Notes = expense.Notes;
 
+        if (expense.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+        {
+            existing.Status = "Pending";
+
+            var history = new ApprovalHistory
+            {
+                Id = $"HIS-{Guid.NewGuid()}",
+                ExpenseId = id,
+                Action = "Submitted",
+                PerformedBy = "Employee",
+                Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                Notes = "Resubmitted claim after revision."
+            };
+            _context.ApprovalHistories.Add(history);
+        }
+
         // Sync items
         var incomingItems = expense.Items ?? new List<ExpenseItem>();
 
@@ -324,11 +331,12 @@ public class EmployeeService : IEmployeeService
         }
 
         // Add or update items
+        int updateIndex = 0;
         foreach (var incomingItem in incomingItems)
         {
             if (string.IsNullOrEmpty(incomingItem.Id))
             {
-                incomingItem.Id = await GenerateNextItemIdAsync();
+                incomingItem.Id = await GenerateNextItemIdAsync(updateIndex++);
                 incomingItem.ExpenseId = existing.Id;
                 existing.Items.Add(incomingItem);
             }
@@ -379,7 +387,20 @@ public class EmployeeService : IEmployeeService
 
     public async Task<UserProfile> GetProfileAsync()
     {
-        var profile = await _context.UserProfiles.FirstOrDefaultAsync();
+        var username = CurrentUserState.Username;
+        var credential = await _context.UserCredentials.FirstOrDefaultAsync(c => c.Username.ToLower() == username.ToLower());
+        
+        UserProfile? profile = null;
+        if (credential != null)
+        {
+            profile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.Name == credential.DisplayName);
+        }
+
+        if (profile == null)
+        {
+            profile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.EmployeeId == "FP-2024-897");
+        }
+
         if (profile == null)
         {
             profile = new UserProfile
@@ -399,7 +420,7 @@ public class EmployeeService : IEmployeeService
 
         // Dynamically compute spentAmount based on Approved/Paid items
         var approvedTotal = await _context.Expenses
-            .Where(e => e.Status == "Approved" || e.Status == "Paid")
+            .Where(e => (e.Status == "Approved" || e.Status == "Paid") && EF.Property<string>(e, "EmployeeId") == profile.EmployeeId)
             .SumAsync(e => e.TotalAmount);
         
         profile.SpentAmount = approvedTotal;

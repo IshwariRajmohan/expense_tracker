@@ -1,0 +1,623 @@
+<div class="manager-portal">
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="btn btn-outline-dark border-light-subtle" (click)="showMobileSidebar = !showMobileSidebar">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <a href="#" class="brand-logo">
+      <i class="bi bi-wallet2 text-primary"></i>
+      <span>FirstPay Portal</span>
+    </a>
+    <div class="dropdown">
+      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop" class="profile-avatar-sm" alt="Avatar" (click)="changeTab('dashboard')">
+    </div>
+  </header>
+
+  <!-- Sidebar Component -->
+  <aside class="sidebar" [class.show-mobile]="showMobileSidebar">
+    <div class="sidebar-brand">
+      <a href="#" class="brand-logo">
+        <i class="bi bi-wallet2 fs-3 text-primary"></i>
+        <span>Veripark Portal</span>
+      </a>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'dashboard'" (click)="changeTab('dashboard')">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'approved-expenses'" (click)="changeTab('approved-expenses')">
+          <i class="bi bi-check-circle"></i>
+          <span>Approved Expenses</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'payment-history'" (click)="changeTab('payment-history')">
+          <i class="bi bi-clock-history"></i>
+          <span>Payment History</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-profile">
+      <div class="d-flex align-items-center gap-3">
+        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop" class="profile-avatar-sm" alt="Avatar">
+        <div class="min-w-0 flex-grow-1">
+          <h6 class="mb-0 text-dark text-truncate">{{ accountantName }}</h6>
+          <small class="text-muted d-block text-truncate">Accountant Officer</small>
+        </div>
+        <button class="btn btn-link text-danger p-0" (click)="logout()" title="Logout">
+          <i class="bi bi-box-arrow-right fs-5"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    <!-- Top Nav Bar (Desktop Only) -->
+    <header class="top-bar">
+      <div class="d-flex align-items-center">
+        <h4 class="mb-0 font-weight-bold text-dark">
+          <span *ngIf="activeTab === 'dashboard'">Accountant Dashboard Overview</span>
+          <span *ngIf="activeTab === 'approved-expenses'">Approved Expense Backlog</span>
+          <span *ngIf="activeTab === 'expense-details'">Expense Disbursement Audit Details</span>
+          <span *ngIf="activeTab === 'payment-history'">Disbursement History Trail</span>
+        </h4>
+      </div>
+
+      <div class="d-flex align-items-center gap-4">
+        <!-- Dashboard Alert Pill -->
+        <div class="d-flex align-items-center gap-2 bg-light px-3 py-1.5 rounded-pill border border-light-subtle" *ngIf="accountantService.dashboard() as db">
+          <i class="bi bi-bell-fill text-warning"></i>
+          <span class="text-muted fs-7">Backlog:</span>
+          <strong class="text-dark fs-7">{{ db.approvedExpensesCount }} Claims</strong>
+        </div>
+
+        <!-- Notification Bell -->
+        <div class="position-relative cursor-pointer">
+          <i class="bi bi-bell fs-5 text-muted hover-white"></i>
+          <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+        </div>
+
+        <button class="btn btn-sm btn-outline-danger px-3 py-1.5" (click)="logout()">
+          <i class="bi bi-box-arrow-right me-2"></i>Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Body -->
+    <main class="content-body">
+      <!-- DASHBOARD TAB -->
+      <section *ngIf="activeTab === 'dashboard'" class="fade-in">
+        <!-- KPI Card Grid -->
+        <div class="row g-4 mb-4" *ngIf="accountantService.dashboard() as db">
+          <!-- Card 1: Approved Expenses Backlog -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-pending d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Approved Claims</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ db.approvedExpensesCount }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-clipboard-check-fill text-warning"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Paid Expenses -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-approved d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Paid Claims</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ db.paidExpensesCount }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-check-circle-fill text-success"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Total Amount to Pay -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-total d-flex align-items-center justify-content-between" style="--kpi-color: #ef4444;">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Total to Pay</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ accountantService.selectedCurrencySymbol() }}{{ db.totalAmountToPay | number:'1.2-2' }}</h3>
+              </div>
+              <div class="kpi-icon" style="background-color: rgba(239, 68, 68, 0.08); color: #ef4444;">
+                <i class="bi bi-credit-card-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Total Amount Paid -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-budget d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Total Amount Paid</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ accountantService.selectedCurrencySymbol() }}{{ db.totalAmountPaid | number:'1.2-2' }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-cash-stack"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Split View -->
+        <div class="row g-4" *ngIf="accountantService.dashboard() as db">
+          <!-- Recent Activity Log (Left Column) -->
+          <div class="col-12 col-lg-5">
+            <div class="glass-card h-100">
+              <h5 class="text-dark font-weight-bold mb-3">Recent Payment Activities</h5>
+              <div class="timeline-audit" *ngIf="db.recentPaymentActivities.length > 0; else noRecentPayments">
+                <div class="timeline-audit-item" *ngFor="let act of db.recentPaymentActivities">
+                  <span class="timeline-audit-badge bg-success-subtle text-success-emphasis border-success-subtle">
+                    <i class="bi bi-credit-card-2-front"></i>
+                  </span>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <strong class="text-dark fs-8">{{ act.expenseId }} - Paid</strong>
+                    <span class="text-muted fs-9">{{ act.paymentDate | date:'short' }}</span>
+                  </div>
+                  <p class="text-muted fs-9 mb-0 mt-0.5">
+                    Disbursed <strong>{{ accountantService.selectedCurrencySymbol() }}{{ act.totalAmount | number:'1.2-2' }}</strong> to {{ act.employeeName }}.
+                  </p>
+                </div>
+              </div>
+              <ng-template #noRecentPayments>
+                <div class="text-center py-5 text-muted">
+                  <i class="bi bi-credit-card fs-2 d-block mb-2"></i>
+                  <span class="fs-8">No recent payment activity logged.</span>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+
+          <!-- Quick Approved Expenses Summary Table (Right Column) -->
+          <div class="col-12 col-lg-7">
+            <div class="glass-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-dark font-weight-bold mb-0">Approved Backlog Overview</h5>
+                <button class="btn btn-link fs-8 p-0" (click)="changeTab('approved-expenses')">View All</button>
+              </div>
+              <div class="table-responsive border border-light-subtle rounded" *ngIf="accountantService.approvedExpenses().length > 0; else noBacklogOverview">
+                <table class="table custom-table mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width: 20%;">Claim ID</th>
+                      <th style="width: 50%;">Title</th>
+                      <th style="width: 30%;" class="text-end">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let exp of accountantService.approvedExpenses().slice(0, 4)" class="cursor-pointer" (click)="viewExpenseDetails(exp)">
+                      <td><span class="text-muted fs-8 font-weight-bold">{{ exp.id }}</span></td>
+                      <td>
+                        <span class="text-dark font-weight-bold d-block text-truncate" style="max-width: 180px;">{{ exp.title }}</span>
+                        <small class="text-muted fs-9">{{ exp.employee.name }}</small>
+                      </td>
+                      <td class="text-end font-weight-bold text-primary">
+                        {{ accountantService.selectedCurrencySymbol() }}{{ exp.totalAmount | number:'1.2-2' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noBacklogOverview>
+                <div class="text-center py-5 text-muted">
+                  <i class="bi bi-emoji-smile fs-2 d-block mb-2"></i>
+                  <span class="fs-8">No approved expenses left to disburse.</span>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- APPROVED EXPENSES TAB -->
+      <section *ngIf="activeTab === 'approved-expenses'" class="fade-in">
+        <div class="glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-dark font-weight-bold mb-0">Approved Expense Claims (Awaiting Disbursement)</h5>
+          </div>
+
+          <!-- Search & Filter Bar -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex flex-wrap align-items-center gap-3 flex-grow-1" style="max-width: 600px;">
+              <!-- Search Input -->
+              <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1" style="max-width: 320px;">
+                <span class="input-group-text bg-white border-0 text-muted ps-3">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control border-0 bg-white" placeholder="Search approved claims..." [(ngModel)]="searchQuery" (ngModelChange)="onApprovedFilterChange()">
+              </div>
+
+              <!-- Category filter -->
+              <select class="form-select custom-input shadow-sm" style="max-width: 220px;" [(ngModel)]="filterCategory" (change)="onApprovedFilterChange()">
+                <option value="">All Categories</option>
+                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+
+            <!-- Page stats summary -->
+            <div class="text-muted fs-8">
+              Showing <strong>{{ Math.min(totalApprovedCount, (currentPage - 1) * pageSize + 1) }}-{{ Math.min(totalApprovedCount, currentPage * pageSize) }}</strong> of <strong>{{ totalApprovedCount }}</strong> approved claims
+            </div>
+          </div>
+
+          <!-- Approved Expenses Table -->
+          <div class="table-responsive border border-light-subtle rounded mb-4" *ngIf="filteredApprovedExpenses.length > 0; else noApprovedClaims">
+            <table class="table custom-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 12%;">Claim ID</th>
+                  <th style="width: 28%;">Expense Title</th>
+                  <th style="width: 20%;">Employee</th>
+                  <th style="width: 15%;">Category</th>
+                  <th style="width: 12%;" class="text-end">Amount</th>
+                  <th style="width: 13%;" class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let exp of paginatedApprovedExpenses">
+                  <td>
+                    <span class="text-muted fs-8 font-weight-bold">{{ exp.id }}</span>
+                  </td>
+                  <td>
+                    <div>
+                      <h6 class="text-dark font-weight-bold mb-0.5">{{ exp.title }}</h6>
+                      <small class="text-muted text-truncate d-block" style="max-width: 240px;">{{ exp.description }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2" *ngIf="exp.employee">
+                      <img [src]="exp.employee.avatarUrl" class="rounded-circle border border-primary-subtle" style="width: 28px; height: 28px; object-fit: cover;">
+                      <div>
+                        <span class="text-dark font-weight-bold d-block fs-8">{{ exp.employee.name }}</span>
+                        <small class="text-muted fs-9 d-block">{{ exp.employee.department }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-muted fs-8">{{ exp.category }}</span>
+                  </td>
+                  <td class="text-end font-weight-bold text-primary">
+                    {{ accountantService.selectedCurrencySymbol() }}{{ exp.totalAmount | number:'1.2-2' }}
+                  </td>
+                  <td class="text-center">
+                    <div class="d-flex gap-2 justify-content-center">
+                      <button class="btn btn-sm btn-outline-primary px-2.5 rounded-pill" (click)="viewExpenseDetails(exp)" title="View Details">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-success px-2.5 rounded-pill text-white" (click)="selectedExpense = exp; openPaymentModal()" title="Mark as Paid">
+                        <i class="bi bi-credit-card"></i> Pay
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noApprovedClaims>
+            <div class="text-center py-5 border border-dashed border-light-subtle rounded my-4">
+              <i class="bi bi-clipboard-check fs-1 text-muted mb-2 d-block"></i>
+              <h5 class="text-dark">No Approved Claims Found</h5>
+              <p class="text-muted fs-8">There are no approved claims matching the filters that require payment.</p>
+            </div>
+          </ng-template>
+
+          <!-- Pagination controls -->
+          <div class="d-flex justify-content-between align-items-center" *ngIf="totalApprovedPages > 1">
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="currentPage === 1" (click)="changeApprovedPage(currentPage - 1)">
+              <i class="bi bi-chevron-left me-1"></i>Previous
+            </button>
+            <div class="d-flex gap-1">
+              <button *ngFor="let p of getApprovedPagesArray()" class="btn btn-sm px-2.5" [class.btn-primary-custom]="currentPage === p" [class.btn-outline-secondary]="currentPage !== p" (click)="changeApprovedPage(p)">
+                {{ p }}
+              </button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="currentPage === totalApprovedPages" (click)="changeApprovedPage(currentPage + 1)">
+              Next<i class="bi bi-chevron-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPENSE DETAILS TAB -->
+      <section *ngIf="activeTab === 'expense-details' && selectedExpense" class="fade-in">
+        <div class="row justify-content-center">
+          <div class="col-12 col-xl-10">
+            <!-- Details Header Card -->
+            <div class="glass-card mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-light-subtle pb-3">
+                <div>
+                  <span class="text-muted fs-8 font-weight-bold">Claim ID: {{ selectedExpense.id }}</span>
+                  <h3 class="text-dark mb-0 mt-1">{{ selectedExpense.title }}</h3>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" (click)="changeTab('approved-expenses')">
+                  Back to Approved Claims
+                </button>
+              </div>
+
+              <!-- Employee Profile details banner -->
+              <div class="row g-3 bg-light border border-light-subtle rounded p-3 mb-4 align-items-center" *ngIf="selectedExpense.employee">
+                <div class="col-auto">
+                  <img [src]="selectedExpense.employee.avatarUrl" class="rounded-circle border border-primary-custom border-2" style="width: 60px; height: 60px; object-fit: cover;">
+                </div>
+                <div class="col">
+                  <span class="text-muted fs-9 d-block uppercase font-weight-bold">Filing Employee</span>
+                  <h5 class="text-dark font-weight-bold mb-0.5">{{ selectedExpense.employee.name }}</h5>
+                  <p class="text-muted fs-8 mb-0">{{ selectedExpense.employee.email }} • ID: {{ selectedExpense.employee.employeeId }}</p>
+                </div>
+                <div class="col-md-3 border-start border-light-subtle ps-4">
+                  <span class="text-muted fs-9 d-block">Department</span>
+                  <strong class="text-dark fs-8">{{ selectedExpense.employee.department }}</strong>
+                </div>
+                <div class="col-md-3 border-start border-light-subtle ps-4">
+                  <span class="text-muted fs-9 d-block">Corporate Role</span>
+                  <strong class="text-dark fs-8">Employee Associate</strong>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-6">
+                  <label class="text-muted fs-8 d-block mb-0.5">Filing Category</label>
+                  <strong class="text-dark">{{ selectedExpense.category }}</strong>
+                </div>
+                <div class="col-6 text-end">
+                  <label class="text-muted fs-8 d-block mb-0.5">Total Claim Request</label>
+                  <h3 class="text-primary font-weight-bold mb-0">{{ accountantService.selectedCurrencySymbol() }}{{ selectedExpense.totalAmount | number:'1.2-2' }}</h3>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block">Submission Description</span>
+                <div class="bg-light rounded p-3 text-muted fs-8 border border-light-subtle mt-1">
+                  {{ selectedExpense.description }}
+                </div>
+              </div>
+
+              <!-- Itemized line items table -->
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block mb-2">Reimbursement Line Items</span>
+                <div class="table-responsive border border-light-subtle rounded">
+                  <table class="table custom-table mb-0 align-middle">
+                    <thead>
+                      <tr class="bg-light">
+                        <th style="width: 50%;">Item Description</th>
+                        <th style="width: 20%;">Category</th>
+                        <th style="width: 15%;" class="text-end">Cost</th>
+                        <th style="width: 15%;" class="text-center">Qty</th>
+                        <th style="width: 15%;" class="text-end">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of selectedExpense.items">
+                        <td><span class="text-dark fs-8">{{ item.name }}</span></td>
+                        <td><span class="text-muted fs-8">{{ item.category }}</span></td>
+                        <td class="text-end text-muted">{{ accountantService.selectedCurrencySymbol() }}{{ item.cost | number:'1.2-2' }}</td>
+                        <td class="text-center text-muted">{{ item.quantity }}</td>
+                        <td class="text-end font-weight-bold text-dark">{{ accountantService.selectedCurrencySymbol() }}{{ (item.cost * item.quantity) | number:'1.2-2' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Receipt Proof -->
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block mb-2">Audit Receipt Proof</span>
+                <div class="d-flex align-items-center gap-3 bg-light border border-light-subtle rounded p-3">
+                  <i class="bi bi-file-earmark-pdf-fill text-danger fs-2"></i>
+                  <div>
+                    <h6 class="text-dark mb-0 fs-8">RECEIPT_PROOF_{{ selectedExpense.id }}.pdf</h6>
+                    <small class="text-muted fs-9">Encrypted Digital Hash Attachment • 456 KB</small>
+                  </div>
+                  <button class="btn btn-sm btn-outline-secondary ms-auto">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- History Timeline -->
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block mb-1">Process Trail Timeline</span>
+                <div class="timeline-audit">
+                  <div *ngFor="let h of selectedExpense.approvalHistory" class="timeline-audit-item">
+                    <span class="timeline-audit-badge" [ngClass]="h.action.toLowerCase()">
+                      <i class="bi" [ngClass]="{
+                        'bi-file-earmark-arrow-up': h.action === 'Submitted',
+                        'bi-check2': h.action === 'Approved',
+                        'bi-credit-card': h.action === 'Paid',
+                        'bi-x': h.action === 'Rejected'
+                      }"></i>
+                    </span>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <strong class="text-dark fs-8">{{ h.action }}</strong>
+                      <span class="text-muted fs-9">{{ h.timestamp | date:'medium' }}</span>
+                    </div>
+                    <p class="text-muted fs-9 mb-0 mt-0.5">By {{ h.performedBy }} • {{ h.notes }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions Panel -->
+              <div class="d-flex justify-content-end gap-3 border-top border-light-subtle pt-4 mt-4">
+                <!-- Mark as Paid Option -->
+                <button class="btn btn-success px-4 text-white" *ngIf="selectedExpense.status === 'Approved'" (click)="openPaymentModal()">
+                  <i class="bi bi-credit-card me-2"></i>Mark as Paid
+                </button>
+                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-2 fs-7" *ngIf="selectedExpense.status === 'Paid'">
+                  <i class="bi bi-check-circle me-1.5"></i>Paid on {{ selectedExpense.paymentDate | date:'mediumDate' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAYMENT HISTORY TAB -->
+      <section *ngIf="activeTab === 'payment-history'" class="fade-in">
+        <div class="glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-dark font-weight-bold mb-0">Disbursement History (Paid Claims)</h5>
+          </div>
+
+          <!-- Search & Filter Bar -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex flex-wrap align-items-center gap-3 flex-grow-1" style="max-width: 600px;">
+              <!-- Search Input -->
+              <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1" style="max-width: 320px;">
+                <span class="input-group-text bg-white border-0 text-muted ps-3">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control border-0 bg-white" placeholder="Search payment history..." [(ngModel)]="historySearchQuery" (ngModelChange)="onHistoryFilterChange()">
+              </div>
+
+              <!-- Category filter -->
+              <select class="form-select custom-input shadow-sm" style="max-width: 220px;" [(ngModel)]="historyFilterCategory" (change)="onHistoryFilterChange()">
+                <option value="">All Categories</option>
+                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+
+            <!-- Page stats summary -->
+            <div class="text-muted fs-8">
+              Showing <strong>{{ Math.min(totalHistoryCount, (historyCurrentPage - 1) * historyPageSize + 1) }}-{{ Math.min(totalHistoryCount, historyCurrentPage * historyPageSize) }}</strong> of <strong>{{ totalHistoryCount }}</strong> paid claims
+            </div>
+          </div>
+
+          <!-- Paid Expenses Table -->
+          <div class="table-responsive border border-light-subtle rounded mb-4" *ngIf="filteredPaymentHistory.length > 0; else noPaidClaims">
+            <table class="table custom-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 12%;">Claim ID</th>
+                  <th style="width: 25%;">Expense Title</th>
+                  <th style="width: 20%;">Employee</th>
+                  <th style="width: 13%;">Category</th>
+                  <th style="width: 12%;" class="text-end">Amount</th>
+                  <th style="width: 18%;" class="text-center">Payment Date</th>
+                  <th style="width: 10%;" class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let exp of paginatedPaymentHistory">
+                  <td>
+                    <span class="text-muted fs-8 font-weight-bold">{{ exp.id }}</span>
+                  </td>
+                  <td>
+                    <div>
+                      <h6 class="text-dark font-weight-bold mb-0.5">{{ exp.title }}</h6>
+                      <small class="text-muted text-truncate d-block" style="max-width: 200px;">{{ exp.description }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2" *ngIf="exp.employee">
+                      <img [src]="exp.employee.avatarUrl" class="rounded-circle border border-primary-subtle" style="width: 28px; height: 28px; object-fit: cover;">
+                      <div>
+                        <span class="text-dark font-weight-bold d-block fs-8">{{ exp.employee.name }}</span>
+                        <small class="text-muted fs-9 d-block">{{ exp.employee.department }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-muted fs-8">{{ exp.category }}</span>
+                  </td>
+                  <td class="text-end font-weight-bold text-success">
+                    {{ accountantService.selectedCurrencySymbol() }}{{ exp.totalAmount | number:'1.2-2' }}
+                  </td>
+                  <td class="text-center text-muted fs-8">
+                    {{ exp.paymentDate | date:'mediumDate' }}
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary px-3 rounded-pill" (click)="viewExpenseDetails(exp)">
+                      <i class="bi bi-eye me-1"></i>View
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noPaidClaims>
+            <div class="text-center py-5 border border-dashed border-light-subtle rounded my-4">
+              <i class="bi bi-credit-card-2-back fs-1 text-muted mb-2 d-block"></i>
+              <h5 class="text-dark">No Payment History Found</h5>
+              <p class="text-muted fs-8">There are no paid expenses in the archives.</p>
+            </div>
+          </ng-template>
+
+          <!-- Pagination controls -->
+          <div class="d-flex justify-content-between align-items-center" *ngIf="totalHistoryPages > 1">
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="historyCurrentPage === 1" (click)="changeHistoryPage(historyCurrentPage - 1)">
+              <i class="bi bi-chevron-left me-1"></i>Previous
+            </button>
+            <div class="d-flex gap-1">
+              <button *ngFor="let p of getHistoryPagesArray()" class="btn btn-sm px-2.5" [class.btn-primary-custom]="historyCurrentPage === p" [class.btn-outline-secondary]="historyCurrentPage !== p" (click)="changeHistoryPage(p)">
+                {{ p }}
+              </button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="historyCurrentPage === totalHistoryPages" (click)="changeHistoryPage(historyCurrentPage + 1)">
+              Next<i class="bi bi-chevron-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- PAYMENT CONFIRMATION MODAL -->
+<div class="modal-backdrop-custom d-flex align-items-center justify-content-center" *ngIf="showPaymentConfirmModal">
+  <div class="glass-card modal-card animate-zoom" style="max-width: 500px; width: 90%;">
+    <div class="d-flex align-items-center gap-3 border-bottom border-light-subtle pb-3 mb-3">
+      <div class="icon-wrapper bg-success-subtle text-success border border-success-subtle" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+        <i class="bi bi-cash fs-4"></i>
+      </div>
+      <div>
+        <h5 class="text-dark font-weight-bold mb-0">Confirm Requisition Payment</h5>
+        <small class="text-muted fs-9" *ngIf="selectedExpense">ID: {{ selectedExpense.id }}</small>
+      </div>
+    </div>
+
+    <div class="mb-4" *ngIf="selectedExpense">
+      <p class="text-muted fs-8">
+        You are about to release payment of <strong>{{ accountantService.selectedCurrencySymbol() }}{{ selectedExpense.totalAmount | number:'1.2-2' }}</strong> to <strong>{{ selectedExpense.employee.name }}</strong> for:
+      </p>
+      <div class="bg-light p-2.5 rounded border border-light-subtle fs-8 text-dark mb-3">
+        <strong>{{ selectedExpense.title }}</strong><br>
+        <span class="text-muted">{{ selectedExpense.description }}</span>
+      </div>
+
+      <label class="form-label text-muted fs-8 font-weight-bold mb-1">Disbursement Remarks / Ref (Optional)</label>
+      <textarea class="form-control custom-input fs-8" rows="3" placeholder="Enter bank reference number, check details, or auditing remarks..." [(ngModel)]="paymentNotes"></textarea>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 border-top border-light-subtle pt-3">
+      <button class="btn btn-outline-secondary px-3 py-1.5 fs-8" (click)="closePaymentModal()">Cancel</button>
+      <button class="btn btn-success px-4 py-1.5 text-white fs-8 font-weight-bold" (click)="confirmPayment()">
+        <i class="bi bi-check-circle me-1.5"></i>Disburse Payment
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div class="toast-container-custom">
+  <div *ngFor="let toast of toasts" class="glass-card toast-custom border-light-subtle shadow animate-slide-in" [ngClass]="toast.type">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi" [ngClass]="{
+        'bi-check-circle-fill text-success': toast.type === 'success',
+        'bi-exclamation-triangle-fill text-danger': toast.type === 'error',
+        'bi-info-circle-fill text-info': toast.type === 'info'
+      }"></i>
+      <div class="flex-grow-1 fs-8 text-dark pr-3">{{ toast.message }}</div>
+      <button type="button" class="btn-close ms-auto" style="font-size: 0.75rem;" (click)="removeToast(toast.id)"></button>
+    </div>
+  </div>
+</div>

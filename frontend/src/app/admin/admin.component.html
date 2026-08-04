@@ -1,0 +1,952 @@
+<div class="manager-portal">
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="btn btn-outline-dark border-light-subtle" (click)="showMobileSidebar = !showMobileSidebar">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <a href="#" class="brand-logo">
+      <i class="bi bi-wallet2 text-primary"></i>
+      <span>FirstPay Portal</span>
+    </a>
+    <div class="dropdown">
+      <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=256&auto=format&fit=crop" class="profile-avatar-sm" alt="Avatar" (click)="changeTab('settings')">
+    </div>
+  </header>
+
+  <!-- Sidebar Component -->
+  <aside class="sidebar" [class.show-mobile]="showMobileSidebar">
+    <div class="sidebar-brand">
+      <a href="#" class="brand-logo">
+        <i class="bi bi-wallet2 fs-3 text-primary"></i>
+        <span>Veripark Portal</span>
+      </a>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'dashboard'" (click)="changeTab('dashboard')">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'users'" (click)="changeTab('users')">
+          <i class="bi bi-people"></i>
+          <span>Users</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'expenses'" (click)="changeTab('expenses')">
+          <i class="bi bi-receipt"></i>
+          <span>All Expenses</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'reports'" (click)="changeTab('reports')">
+          <i class="bi bi-bar-chart-line"></i>
+          <span>Reports</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'history'" (click)="changeTab('history')">
+          <i class="bi bi-clock-history"></i>
+          <span>Approval History</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'freeze-date'" (click)="changeTab('freeze-date')">
+          <i class="bi bi-calendar-x"></i>
+          <span>Freeze Date</span>
+        </a>
+      </li>
+      <li class="menu-item">
+        <a class="menu-link" [class.active]="activeTab === 'settings'" (click)="changeTab('settings')">
+          <i class="bi bi-sliders"></i>
+          <span>Settings</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-profile" *ngIf="adminService.settings() as s">
+      <div class="d-flex align-items-center gap-3">
+        <img [src]="s.adminProfile.avatarUrl" class="profile-avatar-sm" alt="Avatar">
+        <div class="min-w-0 flex-grow-1">
+          <h6 class="mb-0 text-dark text-truncate">{{ s.adminProfile.name }}</h6>
+          <small class="text-muted d-block text-truncate">System Admin</small>
+        </div>
+        <button class="btn btn-link text-danger p-0" (click)="logout()" title="Logout">
+          <i class="bi bi-box-arrow-right fs-5"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    <!-- Top Nav Bar (Desktop Only) -->
+    <header class="top-bar">
+      <div class="d-flex align-items-center">
+        <h4 class="mb-0 font-weight-bold text-dark">
+          <span *ngIf="activeTab === 'dashboard'">Admin Dashboard Overview</span>
+          <span *ngIf="activeTab === 'users'">Corporate Members Management</span>
+          <span *ngIf="activeTab === 'expenses'">Global Expense Requisitions Auditing</span>
+          <span *ngIf="activeTab === 'reports'">Financial Reports and Analytics</span>
+          <span *ngIf="activeTab === 'history'">Global Workflow History Trail</span>
+          <span *ngIf="activeTab === 'freeze-date'">Monthly Freeze Date Configuration</span>
+          <span *ngIf="activeTab === 'settings'">Corporate System Settings</span>
+        </h4>
+      </div>
+
+      <div class="d-flex align-items-center gap-4">
+        <!-- System Mode Pill -->
+        <div class="d-flex align-items-center gap-2 bg-light px-3 py-1.5 rounded-pill border border-light-subtle">
+          <span class="position-absolute p-1 bg-success border rounded-circle" style="width: 8px; height: 8px;"></span>
+          <span class="text-muted fs-8 ps-2.5">System Status:</span>
+          <strong class="text-success fs-8">Active</strong>
+        </div>
+
+        <button class="btn btn-sm btn-outline-danger px-3 py-1.5" (click)="logout()">
+          <i class="bi bi-box-arrow-right me-2"></i>Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Body -->
+    <main class="content-body">
+      <!-- DASHBOARD TAB -->
+      <section *ngIf="activeTab === 'dashboard'" class="fade-in">
+        <!-- KPI Card Grid -->
+        <div class="row g-4 mb-4" *ngIf="adminService.dashboard() as db">
+          <!-- KPI: Total Employees -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-budget d-flex align-items-center justify-content-between" style="--kpi-color: #6366f1;">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Company Employees</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ db.totalEmployees }}</h3>
+              </div>
+              <div class="kpi-icon" style="background-color: rgba(99, 102, 241, 0.08); color: #6366f1;">
+                <i class="bi bi-people-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI: Total Managers -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-approved d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Department Managers</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ db.totalManagers }}</h3>
+              </div>
+              <div class="kpi-icon" style="background-color: rgba(16, 185, 129, 0.08); color: #10b981;">
+                <i class="bi bi-shield-check"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI: Total Accountants -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-pending d-flex align-items-center justify-content-between" style="--kpi-color: #06b6d4;">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Finance Audits</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ db.totalAccountants }}</h3>
+              </div>
+              <div class="kpi-icon" style="background-color: rgba(6, 182, 212, 0.08); color: #06b6d4;">
+                <i class="bi bi-safe-fill"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI: Total Expense Amount -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="glass-card kpi-card kpi-total d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted fs-7 d-block mb-1">Total Active Sum</span>
+                <h3 class="mb-0 text-dark font-weight-bold">{{ adminService.selectedCurrencySymbol() }}{{ db.totalExpenseAmount | number:'1.2-2' }}</h3>
+              </div>
+              <div class="kpi-icon">
+                <i class="bi bi-cash-stack"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expense Status breakdown cards -->
+        <div class="row g-4 mb-4" *ngIf="adminService.dashboard() as db">
+          <div class="col-6 col-md-3">
+            <div class="glass-card text-center p-3">
+              <span class="text-muted fs-8 d-block mb-1">Pending Audit</span>
+              <h4 class="mb-0 text-warning font-weight-bold">{{ db.pendingCount }}</h4>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="glass-card text-center p-3">
+              <span class="text-muted fs-8 d-block mb-1">Approved Claims</span>
+              <h4 class="mb-0 text-success font-weight-bold">{{ db.approvedCount }}</h4>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="glass-card text-center p-3">
+              <span class="text-muted fs-8 d-block mb-1">Rejected Claims</span>
+              <h4 class="mb-0 text-danger font-weight-bold">{{ db.rejectedCount }}</h4>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="glass-card text-center p-3">
+              <span class="text-muted fs-8 d-block mb-1">Paid Claims</span>
+              <h4 class="mb-0 text-info font-weight-bold">{{ db.paidCount }}</h4>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4" *ngIf="adminService.dashboard() as db">
+          <!-- Recent Activities timeline widget in place of chart -->
+          <div class="col-12 col-lg-7">
+            <div class="glass-card h-100">
+              <h5 class="text-dark font-weight-bold mb-3">Recent Corporate System Log Activities</h5>
+              <div class="timeline-audit mt-3 pe-3 pb-2" style="max-height: 290px; overflow-y: auto;">
+                <div class="timeline-audit-item" *ngFor="let log of db.recentActivities">
+                  <span class="timeline-audit-badge" [ngClass]="log.statusType">
+                    <i class="bi bi-lightning-fill text-white fs-9" style="font-size: 0.65rem;"></i>
+                  </span>
+                  <div class="d-flex flex-column align-items-start">
+                    <span class="text-dark fs-8 font-weight-bold mb-1" style="line-height: 1.4;">{{ log.action }}</span>
+                    <span class="text-muted fs-9"><i class="bi bi-clock me-1"></i>{{ log.timestamp | date:'medium' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart 2: Status breakdown list -->
+          <div class="col-12 col-lg-5">
+            <div class="glass-card h-100">
+              <h5 class="text-dark font-weight-bold mb-3">Requisition Status Distribution</h5>
+              <div class="table-responsive border border-light-subtle rounded mt-3">
+                <table class="table custom-table mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th class="text-center">Count</th>
+                      <th class="text-end">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let stat of db.statusChartData">
+                      <td>
+                        <span class="badge-status" [ngClass]="stat.status.toLowerCase()">
+                          {{ stat.status }}
+                        </span>
+                      </td>
+                      <td class="text-center font-weight-bold">{{ stat.count }}</td>
+                      <td class="text-end font-weight-bold text-dark">
+                        {{ adminService.selectedCurrencySymbol() }}{{ stat.amount | number:'1.2-2' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Logs moved to upper dashboard slot -->
+      </section>
+
+      <!-- USERS TAB -->
+      <section *ngIf="activeTab === 'users'" class="fade-in">
+        <div class="row g-4">
+          <!-- Users table column -->
+          <div class="col-12 col-xl-7">
+            <div class="glass-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-dark font-weight-bold mb-0">Company Users Archive</h5>
+                <button class="btn btn-sm btn-primary-custom px-3" (click)="openAddUserModal()">
+                  <i class="bi bi-person-plus me-1.5"></i>Add User
+                </button>
+              </div>
+
+              <!-- Search/Filters bar -->
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1" style="max-width: 500px;">
+                  <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1">
+                    <span class="input-group-text bg-white border-0 text-muted ps-3"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-0 bg-white" placeholder="Search by name, ID..." [(ngModel)]="userSearchQuery">
+                  </div>
+                  <select class="form-select custom-input shadow-sm" style="max-width: 140px;" [(ngModel)]="userFilterRole">
+                    <option value="">All Roles</option>
+                    <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Users table -->
+              <div class="table-responsive border border-light-subtle rounded" style="max-height: 480px; overflow-y: auto;">
+                <table class="table custom-table mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Role</th>
+                      <th>Department</th>
+                      <th class="text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let u of filteredUsers" class="cursor-pointer" (click)="selectedUser = u">
+                      <td>
+                        <div class="d-flex align-items-center gap-2">
+                          <img [src]="u.avatarUrl" class="rounded-circle border border-primary-subtle" style="width: 28px; height: 28px; object-fit: cover;">
+                          <div>
+                            <span class="text-dark font-weight-bold d-block fs-8">{{ u.name }}</span>
+                            <small class="text-muted fs-9 d-block">ID: {{ u.employeeId }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge bg-light text-dark border border-light-subtle rounded-pill px-2.5 py-1 fs-9">
+                          {{ u.role }}
+                        </span>
+                      </td>
+                      <td><span class="text-muted fs-8">{{ u.department }}</span></td>
+                      <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary px-3 rounded-pill" (click)="selectedUser = u; $event.stopPropagation()">
+                          <i class="bi bi-eye"></i> Details
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- User detailed card column (Right) -->
+          <div class="col-12 col-xl-5">
+            <div class="glass-card h-100 d-flex flex-column justify-content-between" style="min-height: 450px;">
+              <div *ngIf="selectedUser; else noUserSelected">
+                <div class="text-center border-bottom border-light-subtle pb-4 mb-4">
+                  <img [src]="selectedUser.avatarUrl" class="rounded-circle border border-primary border-3 mb-3" style="width: 90px; height: 90px; object-fit: cover;">
+                  <h4 class="text-dark font-weight-bold mb-1">{{ selectedUser.name }}</h4>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-8 rounded-pill">
+                    {{ selectedUser.role }}
+                  </span>
+                </div>
+
+                <div class="row g-3 mb-4">
+                  <div class="col-6">
+                    <small class="text-muted fs-9 d-block">CORPORATE ID</small>
+                    <strong class="text-dark fs-8">{{ selectedUser.employeeId }}</strong>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted fs-9 d-block">DEPARTMENT</small>
+                    <strong class="text-dark fs-8">{{ selectedUser.department }}</strong>
+                  </div>
+                  <div class="col-12">
+                    <small class="text-muted fs-9 d-block">EMAIL ADDRESS</small>
+                    <strong class="text-dark fs-8">{{ selectedUser.email }}</strong>
+                  </div>
+                </div>
+
+                <!-- Budget section for employees -->
+                <div class="bg-light rounded p-3 border border-light-subtle" *ngIf="selectedUser.role === 'Employee' || selectedUser.role === 'Manager'">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fs-8">Budget Limit</span>
+                    <strong class="text-dark fs-8">{{ adminService.selectedCurrencySymbol() }}{{ selectedUser.budgetLimit | number:'1.2-2' }}</strong>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted fs-8">Spent Limit</span>
+                    <strong class="text-danger fs-8">{{ adminService.selectedCurrencySymbol() }}{{ selectedUser.spentAmount | number:'1.2-2' }}</strong>
+                  </div>
+                  <!-- Progress Bar -->
+                  <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar bg-danger" role="progressbar" [style.width.%]="(selectedUser.spentAmount / selectedUser.budgetLimit) * 100"></div>
+                  </div>
+                  <small class="text-muted fs-9 d-block mt-2 text-end">
+                    Spent Percentage: {{ ((selectedUser.spentAmount / selectedUser.budgetLimit) * 100) | number:'1.0-0' }}%
+                  </small>
+                </div>
+              </div>
+              <ng-template #noUserSelected>
+                <div class="text-center py-5 my-auto text-muted">
+                  <i class="bi bi-person-bounding-box fs-1 mb-2 d-block"></i>
+                  <h6 class="text-dark">Select a User</h6>
+                  <p class="fs-8">Click details on any user in the archive to view their corporate card metadata.</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ALL EXPENSES TAB -->
+      <section *ngIf="activeTab === 'expenses'" class="fade-in">
+        <!-- Main list view -->
+        <div class="glass-card" *ngIf="!selectedExpense">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-dark font-weight-bold mb-0">Global Expense Audit Log</h5>
+            <!-- Export buttons -->
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-success px-3" (click)="exportExpensesToCsv()">
+                <i class="bi bi-file-earmark-excel me-1.5"></i>Export Excel
+              </button>
+              <button class="btn btn-sm btn-outline-danger px-3" (click)="exportExpensesToPdf()">
+                <i class="bi bi-file-earmark-pdf me-1.5"></i>PDF Print
+              </button>
+            </div>
+          </div>
+
+          <!-- Search & Filter bar -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1" style="max-width: 700px;">
+              <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1" style="max-width: 320px;">
+                <span class="input-group-text bg-white border-0 text-muted ps-3"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control border-0 bg-white" placeholder="Search claims..." [(ngModel)]="expenseSearchQuery" (ngModelChange)="onExpenseFilterChange()">
+              </div>
+              <select class="form-select custom-input shadow-sm" style="max-width: 150px;" [(ngModel)]="expenseFilterStatus" (change)="onExpenseFilterChange()">
+                <option value="">All Statuses</option>
+                <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+              </select>
+              <select class="form-select custom-input shadow-sm" style="max-width: 160px;" [(ngModel)]="expenseFilterCategory" (change)="onExpenseFilterChange()">
+                <option value="">All Categories</option>
+                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+            <!-- Statistics -->
+            <div class="text-muted fs-8">
+              Total Found: <strong>{{ filteredExpenses.length }}</strong> claims
+            </div>
+          </div>
+
+          <!-- Expenses table -->
+          <div class="table-responsive border border-light-subtle rounded mb-4" *ngIf="filteredExpenses.length > 0; else noExpensesFound">
+            <table class="table custom-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 10%;">ID</th>
+                  <th style="width: 25%;">Title</th>
+                  <th style="width: 20%;">Employee</th>
+                  <th style="width: 15%;">Category</th>
+                  <th style="width: 10%;" class="text-end">Amount</th>
+                  <th style="width: 10%;" class="text-center">Status</th>
+                  <th style="width: 10%;" class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let exp of paginatedExpenses" class="cursor-pointer" (click)="viewExpenseDetails(exp)">
+                  <td><span class="text-muted fs-8 font-weight-bold">{{ exp.id }}</span></td>
+                  <td>
+                    <div>
+                      <h6 class="text-dark font-weight-bold mb-0.5 text-truncate" style="max-width: 220px;">{{ exp.title }}</h6>
+                      <small class="text-muted text-truncate d-block" style="max-width: 220px;">{{ exp.description }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2" *ngIf="exp.employee">
+                      <img [src]="exp.employee.avatarUrl" class="rounded-circle border border-primary-subtle" style="width: 28px; height: 28px; object-fit: cover;">
+                      <div>
+                        <span class="text-dark font-weight-bold d-block fs-8">{{ exp.employee.name }}</span>
+                        <small class="text-muted fs-9 d-block">{{ exp.employee.department }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="text-muted fs-8">{{ exp.category }}</span></td>
+                  <td class="text-end font-weight-bold text-primary">
+                    {{ adminService.selectedCurrencySymbol() }}{{ exp.totalAmount | number:'1.2-2' }}
+                  </td>
+                  <td class="text-center">
+                    <span class="badge-status" [ngClass]="exp.status.toLowerCase()">
+                      {{ exp.status }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary px-3 rounded-pill" (click)="viewExpenseDetails(exp); $event.stopPropagation()">
+                      <i class="bi bi-eye"></i> Audit
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noExpensesFound>
+            <div class="text-center py-5 border border-dashed border-light-subtle rounded my-4">
+              <i class="bi bi-journal-x fs-1 text-muted mb-2 d-block"></i>
+              <h5 class="text-dark">No Expense Requisitions Found</h5>
+              <p class="text-muted fs-8">There are no expense records matching the active query constraints.</p>
+            </div>
+          </ng-template>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-content-between align-items-center" *ngIf="totalExpensePages > 1">
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="expenseCurrentPage === 1" (click)="changeExpensePage(expenseCurrentPage - 1)">
+              <i class="bi bi-chevron-left me-1"></i>Previous
+            </button>
+            <div class="d-flex gap-1">
+              <button *ngFor="let p of getExpensePagesArray()" class="btn btn-sm px-2.5" [class.btn-primary-custom]="expenseCurrentPage === p" [class.btn-outline-secondary]="expenseCurrentPage !== p" (click)="changeExpensePage(p)">
+                {{ p }}
+              </button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="expenseCurrentPage === totalExpensePages" (click)="changeExpensePage(expenseCurrentPage + 1)">
+              Next<i class="bi bi-chevron-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Read-Only Detailed view -->
+        <div class="row justify-content-center" *ngIf="selectedExpense">
+          <div class="col-12 col-xl-10 animate-zoom">
+            <div class="glass-card">
+              <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-light-subtle pb-3">
+                <div>
+                  <span class="badge bg-dark text-white fs-9 px-2 rounded mb-1">Read-Only Audit Mode</span>
+                  <h3 class="text-dark mb-0 mt-1">{{ selectedExpense.title }}</h3>
+                  <small class="text-muted fs-9">ID: {{ selectedExpense.id }} • Status: {{ selectedExpense.status }}</small>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" (click)="selectedExpense = null">
+                  Back to List
+                </button>
+              </div>
+
+              <!-- Profile banner -->
+              <div class="row g-3 bg-light border border-light-subtle rounded p-3 mb-4 align-items-center" *ngIf="selectedExpense.employee">
+                <div class="col-auto">
+                  <img [src]="selectedExpense.employee.avatarUrl" class="rounded-circle border border-primary-custom border-2" style="width: 60px; height: 60px; object-fit: cover;">
+                </div>
+                <div class="col">
+                  <span class="text-muted fs-9 d-block uppercase font-weight-bold">Filing Employee</span>
+                  <h5 class="text-dark font-weight-bold mb-0.5">{{ selectedExpense.employee.name }}</h5>
+                  <p class="text-muted fs-8 mb-0">{{ selectedExpense.employee.email }} • ID: {{ selectedExpense.employee.employeeId }}</p>
+                </div>
+                <div class="col-md-3 border-start border-light-subtle ps-4">
+                  <span class="text-muted fs-9 d-block">Department</span>
+                  <strong class="text-dark fs-8">{{ selectedExpense.employee.department }}</strong>
+                </div>
+                <div class="col-md-3 border-start border-light-subtle ps-4">
+                  <span class="text-muted fs-9 d-block">Category</span>
+                  <strong class="text-dark fs-8">{{ selectedExpense.category }}</strong>
+                </div>
+              </div>
+
+              <!-- Requisition cost line items -->
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block mb-2">Reimbursement Line Items</span>
+                <div class="table-responsive border border-light-subtle rounded">
+                  <table class="table custom-table mb-0 align-middle">
+                    <thead>
+                      <tr class="bg-light">
+                        <th style="width: 50%;">Item Description</th>
+                        <th style="width: 20%;">Category</th>
+                        <th style="width: 15%;" class="text-end">Cost</th>
+                        <th style="width: 15%;" class="text-center">Qty</th>
+                        <th style="width: 15%;" class="text-end">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of selectedExpense.items">
+                        <td><span class="text-dark fs-8">{{ item.name }}</span></td>
+                        <td><span class="text-muted fs-8">{{ item.category }}</span></td>
+                        <td class="text-end text-muted">{{ adminService.selectedCurrencySymbol() }}{{ item.cost | number:'1.2-2' }}</td>
+                        <td class="text-center text-muted">{{ item.quantity }}</td>
+                        <td class="text-end font-weight-bold text-dark">{{ adminService.selectedCurrencySymbol() }}{{ (item.cost * item.quantity) | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr class="border-top border-dark-subtle fw-bold bg-light">
+                        <td colspan="4" class="text-end font-weight-bold text-dark">TOTAL:</td>
+                        <td class="text-end font-weight-bold text-primary fs-7">
+                          {{ adminService.selectedCurrencySymbol() }}{{ selectedExpense.totalAmount | number:'1.2-2' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- History Timeline -->
+              <div class="mb-4">
+                <span class="text-muted fs-8 d-block mb-1">Process Trail Timeline Audit</span>
+                <div class="timeline-audit">
+                  <div *ngFor="let h of selectedExpense.approvalHistory" class="timeline-audit-item">
+                    <span class="timeline-audit-badge" [ngClass]="h.action.toLowerCase()">
+                      <i class="bi" [ngClass]="{
+                        'bi-file-earmark-arrow-up': h.action === 'Submitted',
+                        'bi-check2': h.action === 'Approved',
+                        'bi-credit-card': h.action === 'Paid',
+                        'bi-x': h.action === 'Rejected'
+                      }"></i>
+                    </span>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <strong class="text-dark fs-8">{{ h.action }}</strong>
+                      <span class="text-muted fs-9">{{ h.timestamp | date:'medium' }}</span>
+                    </div>
+                    <p class="text-muted fs-9 mb-0 mt-0.5">By {{ h.performedBy }} • {{ h.notes }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert alert-info border border-info-subtle mt-4 bg-info-subtle" role="alert">
+                <i class="bi bi-info-circle-fill me-2 fs-7"></i>
+                <small class="fs-8">
+                  As an Administrator, you have <strong>Read-Only Audit privileges</strong> on this transaction. Requisition changes are reserved for the respective Employee, Department Manager, or Accountant Officer.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- REPORTS TAB -->
+      <section *ngIf="activeTab === 'reports'" class="fade-in">
+        <div class="row g-4" *ngIf="adminService.reports() as r">
+          <!-- Monthly report card -->
+          <div class="col-12 col-xl-6">
+            <div class="glass-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-dark font-weight-bold mb-0">Monthly Expenses Aggregates</h5>
+                <button class="btn btn-sm btn-outline-success" (click)="downloadReportCsv('monthly')">
+                  <i class="bi bi-download me-1.5"></i>Download
+                </button>
+              </div>
+              <div class="table-responsive border border-light-subtle rounded" style="max-height: 260px; overflow-y: auto;">
+                <table class="table custom-table mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th class="text-end">Total Sum</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let m of r.monthlyExpenseReport">
+                      <td><strong class="text-dark">{{ m.label }}</strong></td>
+                      <td class="text-end font-weight-bold text-primary">
+                        {{ adminService.selectedCurrencySymbol() }}{{ m.value | number:'1.2-2' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Department-wise report card -->
+          <div class="col-12 col-xl-6">
+            <div class="glass-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-dark font-weight-bold mb-0">Department Expenses Analysis</h5>
+                <button class="btn btn-sm btn-outline-success" (click)="downloadReportCsv('department')">
+                  <i class="bi bi-download me-1.5"></i>Download
+                </button>
+              </div>
+              <div class="table-responsive border border-light-subtle rounded">
+                <table class="table custom-table mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>Department</th>
+                      <th class="text-center">Claims</th>
+                      <th class="text-end">Sum Reimbursed</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let d of r.departmentWiseExpenses">
+                      <td><strong class="text-dark">{{ d.departmentName }}</strong></td>
+                      <td class="text-center font-weight-bold">{{ d.count }}</td>
+                      <td class="text-end font-weight-bold text-success">
+                        {{ adminService.selectedCurrencySymbol() }}{{ d.totalAmount | number:'1.2-2' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Spenders list -->
+          <div class="col-12">
+            <div class="glass-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-dark font-weight-bold mb-0">Top Spending Employees / Managers</h5>
+                <button class="btn btn-sm btn-outline-success" (click)="downloadReportCsv('top-spenders')">
+                  <i class="bi bi-download me-1.5"></i>Download Spenders
+                </button>
+              </div>
+              <div class="table-responsive border border-light-subtle rounded">
+                <table class="table custom-table mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>Employee Name</th>
+                      <th>Department</th>
+                      <th class="text-center">Total Claims Filed</th>
+                      <th class="text-end">Cumulative Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let emp of r.topSpendingEmployees">
+                      <td>
+                        <strong class="text-dark fs-8">{{ emp.employeeName }}</strong><br>
+                        <small class="text-muted fs-9">ID: {{ emp.employeeId }}</small>
+                      </td>
+                      <td><span class="text-muted fs-8">{{ emp.department }}</span></td>
+                      <td class="text-center font-weight-bold">{{ emp.count }}</td>
+                      <td class="text-end font-weight-bold text-danger">
+                        {{ adminService.selectedCurrencySymbol() }}{{ emp.totalAmount | number:'1.2-2' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- APPROVAL HISTORY TAB -->
+      <section *ngIf="activeTab === 'history'" class="fade-in">
+        <div class="glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-dark font-weight-bold mb-0">Corporate Requisitions Approval Audit Trail</h5>
+          </div>
+
+          <!-- Search & Action filters -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1" style="max-width: 600px;">
+              <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1" style="max-width: 320px;">
+                <span class="input-group-text bg-white border-0 text-muted ps-3"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control border-0 bg-white" placeholder="Search workflow comments..." [(ngModel)]="historySearchQuery" (ngModelChange)="onHistoryFilterChange()">
+              </div>
+              <select class="form-select custom-input shadow-sm" style="max-width: 160px;" [(ngModel)]="historyFilterAction" (change)="onHistoryFilterChange()">
+                <option value="">All Actions</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Paid">Paid</option>
+              </select>
+            </div>
+            <!-- Statistics -->
+            <div class="text-muted fs-8">
+              Timeline logs: <strong>{{ filteredHistory.length }}</strong> events
+            </div>
+          </div>
+
+          <!-- Workflow History list -->
+          <div class="table-responsive border border-light-subtle rounded mb-4" *ngIf="filteredHistory.length > 0; else noHistoryFound">
+            <table class="table custom-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 15%;">Requisition ID</th>
+                  <th style="width: 15%;">Workflow Action</th>
+                  <th style="width: 20%;">Performed By</th>
+                  <th style="width: 35%;">Auditing Remarks / Notes</th>
+                  <th style="width: 15%;" class="text-center">Timestamp Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let h of paginatedHistory">
+                  <td><span class="text-muted fs-8 font-weight-bold">{{ h.expenseId }}</span></td>
+                  <td>
+                    <span class="badge-status" [ngClass]="h.action.toLowerCase()">
+                      {{ h.action }}
+                    </span>
+                  </td>
+                  <td><span class="text-dark font-weight-bold fs-8">{{ h.performedBy }}</span></td>
+                  <td><span class="text-muted fs-8">{{ h.notes || 'No remarks recorded.' }}</span></td>
+                  <td class="text-center text-muted fs-9">{{ h.timestamp | date:'short' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noHistoryFound>
+            <div class="text-center py-5 border border-dashed border-light-subtle rounded my-4">
+              <i class="bi bi-clock-history fs-1 text-muted mb-2 d-block"></i>
+              <h5 class="text-dark">No Approval History Found</h5>
+              <p class="text-muted fs-8">No matching action history logged in system registries.</p>
+            </div>
+          </ng-template>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-content-between align-items-center" *ngIf="totalHistoryPages > 1">
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="historyCurrentPage === 1" (click)="changeHistoryPage(historyCurrentPage - 1)">
+              <i class="bi bi-chevron-left me-1"></i>Previous
+            </button>
+            <div class="d-flex gap-1">
+              <button *ngFor="let p of getHistoryPagesArray()" class="btn btn-sm px-2.5" [class.btn-primary-custom]="historyCurrentPage === p" [class.btn-outline-secondary]="historyCurrentPage !== p" (click)="changeHistoryPage(p)">
+                {{ p }}
+              </button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="historyCurrentPage === totalHistoryPages" (click)="changeHistoryPage(historyCurrentPage + 1)">
+              Next<i class="bi bi-chevron-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- FREEZE DATE TAB -->
+      <section *ngIf="activeTab === 'freeze-date'" class="fade-in">
+        <div class="row justify-content-center" *ngIf="adminService.freezeDate() as f">
+          <div class="col-12 col-md-8 col-xl-6">
+            <div class="glass-card text-center p-4">
+              <div class="icon-wrapper mx-auto bg-warning-subtle text-warning border border-warning-subtle mb-3" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-calendar-event fs-3 text-warning"></i>
+              </div>
+              <h4 class="text-dark font-weight-bold mb-1">Corporate Submission Period</h4>
+              <p class="text-muted fs-8">The monthly cut-off period defines when employees can draft and file expense requisitions.</p>
+
+              <!-- State indicator -->
+              <div class="my-4">
+                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-4 py-2 fs-7 rounded-pill" *ngIf="!f.isClosed">
+                  <i class="bi bi-unlock-fill me-1.5"></i>System Open (Day {{ f.freezeDay }} Cut-Off)
+                </span>
+                <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-4 py-2 fs-7 rounded-pill" *ngIf="f.isClosed">
+                  <i class="bi bi-lock-fill me-1.5"></i>System Closed (Freeze Date Exceeded)
+                </span>
+              </div>
+
+              <!-- Freeze Date Settings form -->
+              <div class="bg-light rounded p-4 border border-light-subtle text-start">
+                <label class="form-label text-muted fs-8 font-weight-bold mb-1">Adjust Freeze Date Day</label>
+                <div class="input-group">
+                  <input type="number" class="form-control custom-input fs-8" placeholder="Day of Month (1-31)" min="1" max="31" [(ngModel)]="newFreezeDay">
+                  <button class="btn btn-primary-custom px-4 fs-8" (click)="submitFreezeDateUpdate()">Update Day</button>
+                </div>
+                <small class="text-muted fs-9 d-block mt-2">
+                  Default freeze date day is <strong>18</strong>. Filing is locked from the 19th of each month.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS TAB -->
+      <section *ngIf="activeTab === 'settings'" class="fade-in">
+        <div class="row g-4">
+          <!-- Corporate configurations -->
+          <div class="col-12 col-xl-7">
+            <div class="glass-card">
+              <h5 class="text-dark font-weight-bold mb-4">Corporate Configuration Panel</h5>
+
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-muted fs-8 font-weight-bold mb-1">Corporate Name</label>
+                  <input type="text" class="form-control custom-input fs-8" [(ngModel)]="settingsForm.companyName">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-muted fs-8 font-weight-bold mb-1">Currency Setup</label>
+                  <select class="form-select custom-input fs-8" [(ngModel)]="settingsForm.corporateCurrency">
+                    <option value="USD ($)">USD ($)</option>
+                    <option value="EUR (€)">EUR (€)</option>
+                    <option value="TRY (₺)">TRY (₺)</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label text-muted fs-8 font-weight-bold mb-1">Corporate HQ Address</label>
+                  <textarea class="form-control custom-input fs-8" rows="2" [(ngModel)]="settingsForm.companyAddress"></textarea>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-muted fs-8 font-weight-bold mb-1">System Operational Mode</label>
+                  <input type="text" class="form-control custom-input fs-8" [disabled]="true" [(ngModel)]="settingsForm.systemMode">
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end gap-3 border-top border-light-subtle pt-4 mt-4">
+                <button class="btn btn-primary-custom px-4 fs-8" (click)="saveSettings()">Save Configurations</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Details (Right) -->
+          <div class="col-12 col-xl-5" *ngIf="adminService.settings() as s">
+            <div class="glass-card">
+              <h5 class="text-dark font-weight-bold mb-4">Admin Profile Details</h5>
+              <div class="text-center pb-3">
+                <img [src]="s.adminProfile.avatarUrl" class="rounded-circle border border-primary border-3 mb-2" style="width: 75px; height: 75px; object-fit: cover;">
+                <h5 class="text-dark font-weight-bold mb-1">{{ s.adminProfile.name }}</h5>
+                <small class="text-muted fs-9 d-block">Employee ID: {{ s.adminProfile.employeeId }}</small>
+              </div>
+              <div class="border-top border-light-subtle pt-3 mt-3">
+                <div class="row g-2">
+                  <div class="col-6"><span class="text-muted fs-9">DEPARTMENT</span></div>
+                  <div class="col-6 text-end"><strong class="text-dark fs-8">{{ s.adminProfile.department }}</strong></div>
+                  <div class="col-6"><span class="text-muted fs-9">OPERATIONAL ROLE</span></div>
+                  <div class="col-6 text-end"><strong class="text-dark fs-8">{{ s.adminProfile.role }}</strong></div>
+                  <div class="col-4"><span class="text-muted fs-9">EMAIL</span></div>
+                  <div class="col-8 text-end"><strong class="text-dark fs-8 text-truncate d-block">{{ s.adminProfile.email }}</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-backdrop-custom d-flex align-items-center justify-content-center" *ngIf="showAddUserModal">
+  <div class="glass-card modal-card animate-zoom" style="max-width: 550px; width: 90%;">
+    <div class="d-flex align-items-center gap-3 border-bottom border-light-subtle pb-3 mb-3">
+      <div class="icon-wrapper bg-primary-subtle text-primary border border-primary-subtle" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+        <i class="bi bi-person-plus fs-4"></i>
+      </div>
+      <div>
+        <h5 class="text-dark font-weight-bold mb-0">Create New Corporate Member</h5>
+        <small class="text-muted fs-9">Input user configuration details below</small>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted fs-8 font-weight-bold mb-1">Full Name</label>
+        <input type="text" class="form-control custom-input fs-8" placeholder="e.g. John Doe" [(ngModel)]="addUserForm.name">
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted fs-8 font-weight-bold mb-1">Email Address</label>
+        <input type="email" class="form-control custom-input fs-8" placeholder="e.g. john.d@firstpay.com" [(ngModel)]="addUserForm.email">
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted fs-8 font-weight-bold mb-1">Employee / Corporate ID</label>
+        <input type="text" class="form-control custom-input fs-8" placeholder="e.g. FP-2024-105" [(ngModel)]="addUserForm.employeeId">
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted fs-8 font-weight-bold mb-1">Avatar Image URL (Optional)</label>
+        <input type="text" class="form-control custom-input fs-8" placeholder="Image URL..." [(ngModel)]="addUserForm.avatarUrl">
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted fs-8 font-weight-bold mb-1">Corporate Role</label>
+        <select class="form-select custom-input fs-8" [(ngModel)]="addUserForm.role">
+          <option value="Employee">Employee</option>
+          <option value="Manager">Department Manager</option>
+          <option value="Accountant">Accountant Officer</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted fs-8 font-weight-bold mb-1">Department</label>
+        <select class="form-select custom-input fs-8" [(ngModel)]="addUserForm.department">
+          <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+        </select>
+      </div>
+      <div class="col-12" *ngIf="addUserForm.role === 'Employee' || addUserForm.role === 'Manager'">
+        <label class="form-label text-muted fs-8 font-weight-bold mb-1">Monthly Budget Limit ($)</label>
+        <input type="number" class="form-control custom-input fs-8" min="0" [(ngModel)]="addUserForm.budgetLimit">
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 border-top border-light-subtle pt-3">
+      <button class="btn btn-outline-secondary px-3 py-1.5 fs-8" (click)="closeAddUserModal()">Cancel</button>
+      <button class="btn btn-primary-custom px-4 py-1.5 fs-8 font-weight-bold" (click)="submitAddUser()">
+        <i class="bi bi-person-plus me-1.5"></i>Create Member
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container-custom">
+  <div *ngFor="let toast of toasts" class="glass-card toast-custom border-light-subtle shadow animate-slide-in" [ngClass]="toast.type">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi" [ngClass]="{
+        'bi-check-circle-fill text-success': toast.type === 'success',
+        'bi-exclamation-triangle-fill text-danger': toast.type === 'error',
+        'bi-info-circle-fill text-info': toast.type === 'info'
+      }"></i>
+      <div class="flex-grow-1 fs-8 text-dark pr-3">{{ toast.message }}</div>
+      <button type="button" class="btn-close ms-auto" style="font-size: 0.75rem;" (click)="removeToast(toast.id)"></button>
+    </div>
+  </div>
+</div>
