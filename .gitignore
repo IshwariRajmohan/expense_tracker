@@ -23,3 +23,7 @@ frontend/.angular/
 
 # Log files
 *.log
+
+# Environment files
+.env
+
