@@ -1,0 +1,25 @@
+# IDE and Workspace settings
+.vs/
+.vscode/
+*.suo
+*.user
+*.userossc
+*.sln.docstates
+slnx.sqlite
+
+# C# / .NET Build outputs
+[Bb]in/
+[Oo]bj/
+backend/bin/
+backend/obj/
+
+# Node / Angular caches and builds
+node_modules/
+dist/
+.angular/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Log files
+*.log
