@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, effect, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -14,6 +14,8 @@ import { Expense, ExpenseItem, UserProfile } from './employee.model';
   styleUrl: './employee.component.css'
 })
 export class EmployeeComponent implements OnInit {
+  showNotificationDropdown = false;
+  dismissedNotificationIds = signal<string[]>([]);
   // Expose Math to template
   readonly Math = Math;
 
@@ -87,9 +89,18 @@ export class EmployeeComponent implements OnInit {
         this.showRejectedNotification = false;
       }
     });
+
+    // Reactively sync the profile form when profile details load
+    effect(() => {
+      const prof = this.employeeService.profile();
+      if (prof) {
+        this.profileForm = { ...prof };
+      }
+    });
   }
 
   ngOnInit(): void {
+    this.employeeService.initializeData();
     this.resetExpenseForm();
     this.initProfileForm();
     this.countryInputText = this.employeeService.selectedCountry();
@@ -169,6 +180,13 @@ export class EmployeeComponent implements OnInit {
       return;
     }
 
+    // Validate allowance limit
+    const remainingAllowance = this.employeeService.remainingBudget();
+    if (this.formTotalAmount > remainingAllowance) {
+      alert(`Cannot submit expense. The total amount (${this.formTotalAmount.toFixed(2)}) exceeds your available allowance (${remainingAllowance.toFixed(2)}).`);
+      return;
+    }
+
     const expensePayload = {
       title: this.expenseTitle,
       category: this.expenseCategory,
@@ -184,7 +202,7 @@ export class EmployeeComponent implements OnInit {
       if (existing) {
         let newStatus = existing.status;
         const lowerStatus = existing.status?.toLowerCase();
-        if (lowerStatus === 'rejected' || lowerStatus === 'draft') {
+        if (lowerStatus === 'rejected' || lowerStatus === 'draft' || lowerStatus === 'pending') {
           newStatus = 'Pending';
         }
 
@@ -401,6 +419,44 @@ export class EmployeeComponent implements OnInit {
     if (tab === 'profile') {
       this.initProfileForm();
     }
+  }
+
+  toggleNotifications(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showNotificationDropdown = !this.showNotificationDropdown;
+  }
+
+  get notificationCount(): number {
+    return this.notifications.length;
+  }
+
+  get notifications() {
+    return this.employeeService.expenses()
+      .filter(e => e.status?.toLowerCase() === 'rejected' && !this.dismissedNotificationIds().includes(e.id))
+      .map(e => ({
+        id: e.id,
+        title: 'Expense Claim Rejected',
+        description: `"${e.title}" was rejected. Tap to edit/resubmit.`,
+        type: 'rejected',
+        time: 'Just Now',
+        expense: e
+      }));
+  }
+
+  clearNotifications(): void {
+    const ids = this.notifications.map(n => n.id);
+    this.dismissedNotificationIds.set([...this.dismissedNotificationIds(), ...ids]);
+    this.showNotificationDropdown = false;
+  }
+
+  handleNotificationClick(note: any): void {
+    this.showNotificationDropdown = false;
+    this.openEditForm(note.expense);
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.showNotificationDropdown = false;
   }
 
   logout(): void {

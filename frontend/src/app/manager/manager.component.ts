@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -15,6 +15,8 @@ import { UserProfile } from '../employee/employee.model';
   styleUrl: './manager.component.css'
 })
 export class ManagerComponent implements OnInit {
+  showNotificationDropdown = false;
+  dismissedNotificationIds = signal<string[]>([]);
   // Expose Math to template
   readonly Math = Math;
 
@@ -250,6 +252,44 @@ export class ManagerComponent implements OnInit {
       this.managerService.loadProfile();
       this.initProfileForm();
     }
+  }
+
+  toggleNotifications(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showNotificationDropdown = !this.showNotificationDropdown;
+  }
+
+  get notificationCount(): number {
+    return this.notifications.length;
+  }
+
+  get notifications() {
+    return this.managerService.pendingExpenses()
+      .filter(e => !this.dismissedNotificationIds().includes(e.id))
+      .map(e => ({
+        id: e.id,
+        title: 'Pending Claim Requisition',
+        description: `"${e.title}" from ${e.employee?.name || 'Employee'} needs audit.`,
+        type: 'pending',
+        time: 'Pending',
+        expense: e
+      }));
+  }
+
+  clearNotifications(): void {
+    const ids = this.notifications.map(n => n.id);
+    this.dismissedNotificationIds.set([...this.dismissedNotificationIds(), ...ids]);
+    this.showNotificationDropdown = false;
+  }
+
+  handleNotificationClick(note: any): void {
+    this.showNotificationDropdown = false;
+    this.viewExpenseDetails(note.expense);
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.showNotificationDropdown = false;
   }
 
   logout(): void {

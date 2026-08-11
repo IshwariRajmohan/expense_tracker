@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,6 +14,8 @@ import { AccountantExpense } from './accountant.model';
   styleUrl: './accountant.component.css'
 })
 export class AccountantComponent implements OnInit {
+  showNotificationDropdown = false;
+  dismissedNotificationIds = signal<string[]>([]);
   // Expose Math to template
   readonly Math = Math;
 
@@ -264,6 +266,44 @@ export class AccountantComponent implements OnInit {
       this.accountantService.loadPaymentHistory();
       this.historyCurrentPage = 1;
     }
+  }
+
+  toggleNotifications(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showNotificationDropdown = !this.showNotificationDropdown;
+  }
+
+  get notificationCount(): number {
+    return this.notifications.length;
+  }
+
+  get notifications() {
+    return this.accountantService.approvedExpenses()
+      .filter(e => !this.dismissedNotificationIds().includes(e.id))
+      .map(e => ({
+        id: e.id,
+        title: 'Payment Pending Requisition',
+        description: `"${e.title}" from ${e.employee?.name || 'Employee'} needs payment.`,
+        type: 'approved',
+        time: 'Ready',
+        expense: e
+      }));
+  }
+
+  clearNotifications(): void {
+    const ids = this.notifications.map(n => n.id);
+    this.dismissedNotificationIds.set([...this.dismissedNotificationIds(), ...ids]);
+    this.showNotificationDropdown = false;
+  }
+
+  handleNotificationClick(note: any): void {
+    this.showNotificationDropdown = false;
+    this.viewExpenseDetails(note.expense);
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.showNotificationDropdown = false;
   }
 
   logout(): void {

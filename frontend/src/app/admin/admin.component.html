@@ -661,13 +661,13 @@
               </div>
 
               <!-- Freeze Date Settings form -->
-              <div class="bg-light rounded p-4 border border-light-subtle text-start">
-                <label class="form-label text-muted fs-8 font-weight-bold mb-1">Adjust Freeze Date Day</label>
-                <div class="input-group">
-                  <input type="number" class="form-control custom-input fs-8" placeholder="Day of Month (1-31)" min="1" max="31" [(ngModel)]="newFreezeDay">
-                  <button class="btn btn-primary-custom px-4 fs-8" (click)="submitFreezeDateUpdate()">Update Day</button>
+              <div class="bg-light rounded p-4 border border-light-subtle text-center">
+                <label class="form-label text-muted fs-8 font-weight-bold mb-2 d-block">Adjust Freeze Date Day</label>
+                <div class="mx-auto mb-3" style="max-width: 240px;">
+                  <input type="number" class="form-control custom-input fs-8 text-center" placeholder="Day of Month (1-31)" min="1" max="31" [(ngModel)]="newFreezeDay">
                 </div>
-                <small class="text-muted fs-9 d-block mt-2">
+                <button class="btn btn-primary-custom px-4 py-2 fs-8 mb-2" (click)="submitFreezeDateUpdate()">Update Day</button>
+                <small class="text-muted fs-9 d-block">
                   Default freeze date day is <strong>18</strong>. Filing is locked from the 19th of each month.
                 </small>
               </div>

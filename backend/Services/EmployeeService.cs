@@ -283,6 +283,21 @@ public class EmployeeService : IEmployeeService
             throw new System.InvalidOperationException("Submissions for this month are closed. The freeze date has passed.");
         }
 
+        var profile = await GetProfileAsync();
+        if (profile != null)
+        {
+            var approvedTotal = await _context.Expenses
+                .Where(e => (e.Status == "Approved" || e.Status == "Paid") && EF.Property<string>(e, "EmployeeId") == profile.EmployeeId)
+                .SumAsync(e => e.TotalAmount);
+
+            var remainingAllowance = profile.BudgetLimit - approvedTotal;
+
+            if (expense.TotalAmount > remainingAllowance)
+            {
+                throw new System.InvalidOperationException($"Submission blocked: The expense amount (${expense.TotalAmount:F2}) exceeds your remaining allowance (${remainingAllowance:F2}).");
+            }
+        }
+
         var result = await SaveOrUpdateExpenseInternalAsync(expense, "Pending");
         await AddActivityLogAsync($"Submitted expense claim \"{expense.Title}\" of ${expense.TotalAmount:F2} for manager audit", "warning");
         await _context.SaveChangesAsync();
@@ -300,11 +315,12 @@ public class EmployeeService : IEmployeeService
             return false;
         }
 
-        // Verify status is Draft or Rejected
+        // Verify status is Draft, Rejected, or Pending
         if (!existing.Status.Equals("Draft", StringComparison.OrdinalIgnoreCase) && 
-            !existing.Status.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+            !existing.Status.Equals("Rejected", StringComparison.OrdinalIgnoreCase) && 
+            !existing.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
         {
-            return false; // only Draft or Rejected can be updated
+            return false; // only Draft, Rejected, or Pending can be updated
         }
 
         existing.Title = expense.Title;
@@ -320,6 +336,21 @@ public class EmployeeService : IEmployeeService
             if (freezeSetting != null && DateTime.UtcNow.Day > freezeSetting.FreezeDay)
             {
                 throw new System.InvalidOperationException("Submissions for this month are closed. The freeze date has passed.");
+            }
+
+            var profile = await GetProfileAsync();
+            if (profile != null)
+            {
+                var approvedTotal = await _context.Expenses
+                    .Where(e => e.Id != id && (e.Status == "Approved" || e.Status == "Paid") && EF.Property<string>(e, "EmployeeId") == profile.EmployeeId)
+                    .SumAsync(e => e.TotalAmount);
+
+                var remainingAllowance = profile.BudgetLimit - approvedTotal;
+
+                if (expense.TotalAmount > remainingAllowance)
+                {
+                    throw new System.InvalidOperationException($"Submission blocked: The updated expense amount (${expense.TotalAmount:F2}) exceeds your remaining allowance (${remainingAllowance:F2}).");
+                }
             }
 
             existing.Status = "Pending";

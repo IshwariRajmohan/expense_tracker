@@ -97,7 +97,7 @@ export class EmployeeService {
     this.initializeData();
   }
 
-  private initializeData(): void {
+  initializeData(): void {
     this.loadProfile();
     this.loadExpenses();
     this.loadActivities();
