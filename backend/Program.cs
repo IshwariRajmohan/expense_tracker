@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Services;
+using Microsoft.Data.SqlClient;
 
 // Load environment variables from .env file
 var currentDirectory = System.IO.Directory.GetCurrentDirectory();
@@ -37,8 +38,66 @@ builder.Services.AddControllers();
 // Configure ApplicationDbContext with SQL Server
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                        ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+connectionString = FindWorkingConnectionString(connectionString);
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+string? FindWorkingConnectionString(string? primaryConnectionString)
+{
+    if (string.IsNullOrEmpty(primaryConnectionString)) return primaryConnectionString;
+
+    try
+    {
+        var connBuilder = new SqlConnectionStringBuilder(primaryConnectionString);
+        var originalServer = connBuilder.DataSource;
+
+        var serverCandidates = new List<string>
+        {
+            originalServer,
+            "localhost",
+            "localhost\\SQLEXPRESS",
+            "localhost\\MSSQLSERVER03"
+        };
+
+        foreach (var server in serverCandidates.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrEmpty(server)) continue;
+
+            var testBuilder = new SqlConnectionStringBuilder(primaryConnectionString)
+            {
+                DataSource = server,
+                InitialCatalog = "master", // Connect to master to test server reachability
+                ConnectTimeout = 2 // Low timeout for fast fallback
+            };
+
+            try
+            {
+                using (var conn = new SqlConnection(testBuilder.ConnectionString))
+                {
+                    conn.Open();
+                    // Successfully connected to master, return the connection string with this server
+                    var finalBuilder = new SqlConnectionStringBuilder(primaryConnectionString)
+                    {
+                        DataSource = server
+                    };
+                    return finalBuilder.ConnectionString;
+                }
+            }
+            catch (SqlException)
+            {
+                // Try next candidate
+            }
+        }
+    }
+    catch
+    {
+        // Fallback to original if any parsing error occurs
+    }
+
+    return primaryConnectionString;
+}
 
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IManagerService, ManagerService>();
