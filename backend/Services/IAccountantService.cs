@@ -11,4 +11,5 @@ public interface IAccountantService
     Task<AccountantExpenseDto?> GetExpenseByIdAsync(string id);
     Task<bool> PayExpenseAsync(string id, string? notes);
     Task<IEnumerable<AccountantExpenseDto>> GetPaymentHistoryAsync();
+    Task<IEnumerable<backend.Models.ActivityLog>> GetActivityLogsAsync();
 }

@@ -16,6 +16,8 @@ public class DashboardSummaryDto
     public List<StatusChartDataPointDto> StatusChartData { get; set; } = new();
     public List<ActivityLog> RecentActivities { get; set; } = new();
     public List<Expense> LatestExpenses { get; set; } = new();
+    public bool IsSubmissionFrozen { get; set; }
+    public int FreezeDay { get; set; }
 }
 
 public class ChartDataPointDto

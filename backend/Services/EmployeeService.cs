@@ -118,6 +118,10 @@ public class EmployeeService : IEmployeeService
             .Take(5)
             .ToListAsync();
 
+        var freezeSetting = await _context.FreezeDateSettings.FirstOrDefaultAsync(s => s.Id == 1);
+        var freezeDay = freezeSetting?.FreezeDay ?? 18;
+        var isFrozen = DateTime.UtcNow.Day > freezeDay;
+
         var summary = new DashboardSummaryDto
         {
             TotalExpenses = expenses.Count,
@@ -130,7 +134,9 @@ public class EmployeeService : IEmployeeService
             MonthlyExpenseChartData = monthlyChart,
             StatusChartData = statusGroups,
             RecentActivities = activities,
-            LatestExpenses = expenses.OrderByDescending(e => e.Id).Take(5).ToList()
+            LatestExpenses = expenses.OrderByDescending(e => e.Id).Take(5).ToList(),
+            IsSubmissionFrozen = isFrozen,
+            FreezeDay = freezeDay
         };
 
         return summary;
@@ -271,6 +277,12 @@ public class EmployeeService : IEmployeeService
 
     public async Task<Expense> SubmitExpenseAsync(Expense expense)
     {
+        var freezeSetting = await _context.FreezeDateSettings.FirstOrDefaultAsync(s => s.Id == 1);
+        if (freezeSetting != null && DateTime.UtcNow.Day > freezeSetting.FreezeDay)
+        {
+            throw new System.InvalidOperationException("Submissions for this month are closed. The freeze date has passed.");
+        }
+
         var result = await SaveOrUpdateExpenseInternalAsync(expense, "Pending");
         await AddActivityLogAsync($"Submitted expense claim \"{expense.Title}\" of ${expense.TotalAmount:F2} for manager audit", "warning");
         await _context.SaveChangesAsync();
@@ -304,6 +316,12 @@ public class EmployeeService : IEmployeeService
 
         if (expense.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
         {
+            var freezeSetting = await _context.FreezeDateSettings.FirstOrDefaultAsync(s => s.Id == 1);
+            if (freezeSetting != null && DateTime.UtcNow.Day > freezeSetting.FreezeDay)
+            {
+                throw new System.InvalidOperationException("Submissions for this month are closed. The freeze date has passed.");
+            }
+
             existing.Status = "Pending";
 
             var history = new ApprovalHistory
@@ -394,6 +412,23 @@ public class EmployeeService : IEmployeeService
         if (credential != null)
         {
             profile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.Name == credential.DisplayName);
+        }
+
+        if (profile == null && credential != null)
+        {
+            profile = new UserProfile
+            {
+                EmployeeId = "FP-TEMP-" + credential.Username.ToUpper(),
+                Name = credential.DisplayName,
+                Email = credential.Username.ToLower() + "@firstpay.com",
+                Role = credential.Role,
+                Department = "General",
+                BudgetLimit = 5000.00m,
+                SpentAmount = 0.00m,
+                AvatarUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=256&auto=format&fit=crop"
+            };
+            _context.UserProfiles.Add(profile);
+            await _context.SaveChangesAsync();
         }
 
         if (profile == null)

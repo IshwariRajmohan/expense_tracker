@@ -29,12 +29,7 @@
           <span>Dashboard</span>
         </a>
       </li>
-      <li class="menu-item">
-        <a class="menu-link" [class.active]="activeTab === 'approved-expenses'" (click)="changeTab('approved-expenses')">
-          <i class="bi bi-check-circle"></i>
-          <span>Approved Expenses</span>
-        </a>
-      </li>
+
       <li class="menu-item">
         <a class="menu-link" [class.active]="activeTab === 'payment-history'" (click)="changeTab('payment-history')">
           <i class="bi bi-clock-history"></i>
@@ -64,7 +59,7 @@
       <div class="d-flex align-items-center">
         <h4 class="mb-0 font-weight-bold text-dark">
           <span *ngIf="activeTab === 'dashboard'">Accountant Dashboard Overview</span>
-          <span *ngIf="activeTab === 'approved-expenses'">Approved Expense Backlog</span>
+          <span *ngIf="activeTab === 'approved-expenses'">Activity Log Stream</span>
           <span *ngIf="activeTab === 'expense-details'">Expense Disbursement Audit Details</span>
           <span *ngIf="activeTab === 'payment-history'">Disbursement History Trail</span>
         </h4>
@@ -149,184 +144,119 @@
           </div>
         </div>
 
-        <!-- Dashboard Split View -->
+        <!-- Dashboard Split View / Full Width View -->
         <div class="row g-4" *ngIf="accountantService.dashboard() as db">
-          <!-- Recent Activity Log (Left Column) -->
-          <div class="col-12 col-lg-5">
-            <div class="glass-card h-100">
-              <h5 class="text-dark font-weight-bold mb-3">Recent Payment Activities</h5>
-              <div class="timeline-audit" *ngIf="db.recentPaymentActivities.length > 0; else noRecentPayments">
-                <div class="timeline-audit-item" *ngFor="let act of db.recentPaymentActivities">
-                  <span class="timeline-audit-badge bg-success-subtle text-success-emphasis border-success-subtle">
-                    <i class="bi bi-credit-card-2-front"></i>
-                  </span>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <strong class="text-dark fs-8">{{ act.expenseId }} - Paid</strong>
-                    <span class="text-muted fs-9">{{ act.paymentDate | date:'short' }}</span>
-                  </div>
-                  <p class="text-muted fs-9 mb-0 mt-0.5">
-                    Disbursed <strong>{{ accountantService.selectedCurrencySymbol() }}{{ act.totalAmount | number:'1.2-2' }}</strong> to {{ act.employeeName }}.
-                  </p>
-                </div>
-              </div>
-              <ng-template #noRecentPayments>
-                <div class="text-center py-5 text-muted">
-                  <i class="bi bi-credit-card fs-2 d-block mb-2"></i>
-                  <span class="fs-8">No recent payment activity logged.</span>
-                </div>
-              </ng-template>
-            </div>
-          </div>
-
-          <!-- Quick Approved Expenses Summary Table (Right Column) -->
-          <div class="col-12 col-lg-7">
-            <div class="glass-card h-100">
+          <div class="col-12">
+            <div class="glass-card">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="text-dark font-weight-bold mb-0">Approved Backlog Overview</h5>
-                <button class="btn btn-link fs-8 p-0" (click)="changeTab('approved-expenses')">View All</button>
+                <h5 class="text-dark font-weight-bold mb-0">Approved Expense Claims (Awaiting Disbursement)</h5>
               </div>
-              <div class="table-responsive border border-light-subtle rounded" *ngIf="accountantService.approvedExpenses().length > 0; else noBacklogOverview">
+
+              <!-- Search & Filter Bar -->
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div class="d-flex flex-wrap align-items-center gap-3 flex-grow-1" style="max-width: 600px;">
+                  <!-- Search Input -->
+                  <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1" style="max-width: 320px;">
+                    <span class="input-group-text bg-white border-0 text-muted ps-3">
+                      <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control border-0 bg-white" placeholder="Search approved claims..." [(ngModel)]="searchQuery" (ngModelChange)="onApprovedFilterChange()">
+                  </div>
+
+                  <!-- Category filter -->
+                  <select class="form-select custom-input shadow-sm" style="max-width: 220px;" [(ngModel)]="filterCategory" (change)="onApprovedFilterChange()">
+                    <option value="">All Categories</option>
+                    <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                  </select>
+                </div>
+
+                <!-- Page stats summary -->
+                <div class="text-muted fs-8">
+                  Showing <strong>{{ Math.min(totalApprovedCount, (currentPage - 1) * pageSize + 1) }}-{{ Math.min(totalApprovedCount, currentPage * pageSize) }}</strong> of <strong>{{ totalApprovedCount }}</strong> approved claims
+                </div>
+              </div>
+
+              <!-- Approved Expenses Table -->
+              <div class="table-responsive border border-light-subtle rounded mb-4" *ngIf="filteredApprovedExpenses.length > 0; else noApprovedClaims">
                 <table class="table custom-table mb-0 align-middle">
                   <thead>
                     <tr>
-                      <th style="width: 20%;">Claim ID</th>
-                      <th style="width: 50%;">Title</th>
-                      <th style="width: 30%;" class="text-end">Amount</th>
+                      <th style="width: 12%;">Claim ID</th>
+                      <th style="width: 28%;">Expense Title</th>
+                      <th style="width: 20%;">Employee</th>
+                      <th style="width: 15%;">Category</th>
+                      <th style="width: 12%;" class="text-end">Amount</th>
+                      <th style="width: 13%;" class="text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let exp of accountantService.approvedExpenses().slice(0, 4)" class="cursor-pointer" (click)="viewExpenseDetails(exp)">
-                      <td><span class="text-muted fs-8 font-weight-bold">{{ exp.id }}</span></td>
+                    <tr *ngFor="let exp of paginatedApprovedExpenses">
                       <td>
-                        <span class="text-dark font-weight-bold d-block text-truncate" style="max-width: 180px;">{{ exp.title }}</span>
-                        <small class="text-muted fs-9">{{ exp.employee.name }}</small>
+                        <span class="text-muted fs-8 font-weight-bold">{{ exp.id }}</span>
+                      </td>
+                      <td>
+                        <div>
+                          <h6 class="text-dark font-weight-bold mb-0.5">{{ exp.title }}</h6>
+                          <small class="text-muted text-truncate d-block" style="max-width: 240px;">{{ exp.description }}</small>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center gap-2" *ngIf="exp.employee">
+                          <img [src]="exp.employee.avatarUrl" class="rounded-circle border border-primary-subtle" style="width: 28px; height: 28px; object-fit: cover;">
+                          <div>
+                            <span class="text-dark font-weight-bold d-block fs-8">{{ exp.employee.name }}</span>
+                            <small class="text-muted fs-9 d-block">{{ exp.employee.department }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="text-muted fs-8">{{ exp.category }}</span>
                       </td>
                       <td class="text-end font-weight-bold text-primary">
                         {{ accountantService.selectedCurrencySymbol() }}{{ exp.totalAmount | number:'1.2-2' }}
+                      </td>
+                      <td class="text-center">
+                        <div class="d-flex gap-2 justify-content-center">
+                          <button class="btn btn-sm btn-outline-primary px-2.5 rounded-pill" (click)="viewExpenseDetails(exp)" title="View Details">
+                            <i class="bi bi-eye"></i>
+                          </button>
+                          <button class="btn btn-sm btn-success px-2.5 rounded-pill text-white" (click)="selectedExpense = exp; openPaymentModal()" title="Mark as Paid">
+                            <i class="bi bi-credit-card"></i> Pay
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-              <ng-template #noBacklogOverview>
-                <div class="text-center py-5 text-muted">
-                  <i class="bi bi-emoji-smile fs-2 d-block mb-2"></i>
-                  <span class="fs-8">No approved expenses left to disburse.</span>
+              <ng-template #noApprovedClaims>
+                <div class="text-center py-5 border border-dashed border-light-subtle rounded my-4">
+                  <i class="bi bi-clipboard-check fs-1 text-muted mb-2 d-block"></i>
+                  <h5 class="text-dark">No Approved Claims Found</h5>
+                  <p class="text-muted fs-8">There are no approved claims matching the filters that require payment.</p>
                 </div>
               </ng-template>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- APPROVED EXPENSES TAB -->
-      <section *ngIf="activeTab === 'approved-expenses'" class="fade-in">
-        <div class="glass-card">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="text-dark font-weight-bold mb-0">Approved Expense Claims (Awaiting Disbursement)</h5>
-          </div>
-
-          <!-- Search & Filter Bar -->
-          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-            <div class="d-flex flex-wrap align-items-center gap-3 flex-grow-1" style="max-width: 600px;">
-              <!-- Search Input -->
-              <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1" style="max-width: 320px;">
-                <span class="input-group-text bg-white border-0 text-muted ps-3">
-                  <i class="bi bi-search"></i>
-                </span>
-                <input type="text" class="form-control border-0 bg-white" placeholder="Search approved claims..." [(ngModel)]="searchQuery" (ngModelChange)="onApprovedFilterChange()">
+              <!-- Pagination controls -->
+              <div class="d-flex justify-content-between align-items-center" *ngIf="totalApprovedPages > 1">
+                <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="currentPage === 1" (click)="changeApprovedPage(currentPage - 1)">
+                  <i class="bi bi-chevron-left me-1"></i>Previous
+                </button>
+                <div class="d-flex gap-1">
+                  <button *ngFor="let p of getApprovedPagesArray()" class="btn btn-sm px-2.5" [class.btn-primary-custom]="currentPage === p" [class.btn-outline-secondary]="currentPage !== p" (click)="changeApprovedPage(p)">
+                    {{ p }}
+                  </button>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="currentPage === totalApprovedPages" (click)="changeApprovedPage(currentPage + 1)">
+                  Next<i class="bi bi-chevron-right ms-1"></i>
+                </button>
               </div>
-
-              <!-- Category filter -->
-              <select class="form-select custom-input shadow-sm" style="max-width: 220px;" [(ngModel)]="filterCategory" (change)="onApprovedFilterChange()">
-                <option value="">All Categories</option>
-                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
-              </select>
             </div>
-
-            <!-- Page stats summary -->
-            <div class="text-muted fs-8">
-              Showing <strong>{{ Math.min(totalApprovedCount, (currentPage - 1) * pageSize + 1) }}-{{ Math.min(totalApprovedCount, currentPage * pageSize) }}</strong> of <strong>{{ totalApprovedCount }}</strong> approved claims
-            </div>
-          </div>
-
-          <!-- Approved Expenses Table -->
-          <div class="table-responsive border border-light-subtle rounded mb-4" *ngIf="filteredApprovedExpenses.length > 0; else noApprovedClaims">
-            <table class="table custom-table mb-0 align-middle">
-              <thead>
-                <tr>
-                  <th style="width: 12%;">Claim ID</th>
-                  <th style="width: 28%;">Expense Title</th>
-                  <th style="width: 20%;">Employee</th>
-                  <th style="width: 15%;">Category</th>
-                  <th style="width: 12%;" class="text-end">Amount</th>
-                  <th style="width: 13%;" class="text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let exp of paginatedApprovedExpenses">
-                  <td>
-                    <span class="text-muted fs-8 font-weight-bold">{{ exp.id }}</span>
-                  </td>
-                  <td>
-                    <div>
-                      <h6 class="text-dark font-weight-bold mb-0.5">{{ exp.title }}</h6>
-                      <small class="text-muted text-truncate d-block" style="max-width: 240px;">{{ exp.description }}</small>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="d-flex align-items-center gap-2" *ngIf="exp.employee">
-                      <img [src]="exp.employee.avatarUrl" class="rounded-circle border border-primary-subtle" style="width: 28px; height: 28px; object-fit: cover;">
-                      <div>
-                        <span class="text-dark font-weight-bold d-block fs-8">{{ exp.employee.name }}</span>
-                        <small class="text-muted fs-9 d-block">{{ exp.employee.department }}</small>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="text-muted fs-8">{{ exp.category }}</span>
-                  </td>
-                  <td class="text-end font-weight-bold text-primary">
-                    {{ accountantService.selectedCurrencySymbol() }}{{ exp.totalAmount | number:'1.2-2' }}
-                  </td>
-                  <td class="text-center">
-                    <div class="d-flex gap-2 justify-content-center">
-                      <button class="btn btn-sm btn-outline-primary px-2.5 rounded-pill" (click)="viewExpenseDetails(exp)" title="View Details">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button class="btn btn-sm btn-success px-2.5 rounded-pill text-white" (click)="selectedExpense = exp; openPaymentModal()" title="Mark as Paid">
-                        <i class="bi bi-credit-card"></i> Pay
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <ng-template #noApprovedClaims>
-            <div class="text-center py-5 border border-dashed border-light-subtle rounded my-4">
-              <i class="bi bi-clipboard-check fs-1 text-muted mb-2 d-block"></i>
-              <h5 class="text-dark">No Approved Claims Found</h5>
-              <p class="text-muted fs-8">There are no approved claims matching the filters that require payment.</p>
-            </div>
-          </ng-template>
-
-          <!-- Pagination controls -->
-          <div class="d-flex justify-content-between align-items-center" *ngIf="totalApprovedPages > 1">
-            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="currentPage === 1" (click)="changeApprovedPage(currentPage - 1)">
-              <i class="bi bi-chevron-left me-1"></i>Previous
-            </button>
-            <div class="d-flex gap-1">
-              <button *ngFor="let p of getApprovedPagesArray()" class="btn btn-sm px-2.5" [class.btn-primary-custom]="currentPage === p" [class.btn-outline-secondary]="currentPage !== p" (click)="changeApprovedPage(p)">
-                {{ p }}
-              </button>
-            </div>
-            <button class="btn btn-sm btn-outline-secondary px-3" [disabled]="currentPage === totalApprovedPages" (click)="changeApprovedPage(currentPage + 1)">
-              Next<i class="bi bi-chevron-right ms-1"></i>
-            </button>
           </div>
         </div>
       </section>
+
+
 
       <!-- EXPENSE DETAILS TAB -->
       <section *ngIf="activeTab === 'expense-details' && selectedExpense" class="fade-in">
@@ -409,20 +339,7 @@
                 </div>
               </div>
 
-              <!-- Receipt Proof -->
-              <div class="mb-4">
-                <span class="text-muted fs-8 d-block mb-2">Audit Receipt Proof</span>
-                <div class="d-flex align-items-center gap-3 bg-light border border-light-subtle rounded p-3">
-                  <i class="bi bi-file-earmark-pdf-fill text-danger fs-2"></i>
-                  <div>
-                    <h6 class="text-dark mb-0 fs-8">RECEIPT_PROOF_{{ selectedExpense.id }}.pdf</h6>
-                    <small class="text-muted fs-9">Encrypted Digital Hash Attachment • 456 KB</small>
-                  </div>
-                  <button class="btn btn-sm btn-outline-secondary ms-auto">
-                    <i class="bi bi-eye"></i>
-                  </button>
-                </div>
-              </div>
+
 
               <!-- History Timeline -->
               <div class="mb-4">

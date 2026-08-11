@@ -59,4 +59,11 @@ public class AccountantController : ControllerBase
         var history = await _accountantService.GetPaymentHistoryAsync();
         return Ok(history);
     }
+
+    [HttpGet("activity-logs")]
+    public async Task<IActionResult> GetActivityLogs()
+    {
+        var logs = await _accountantService.GetActivityLogsAsync();
+        return Ok(logs);
+    }
 }

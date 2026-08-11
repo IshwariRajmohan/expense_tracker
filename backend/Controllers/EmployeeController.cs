@@ -62,8 +62,15 @@ public class EmployeeController : ControllerBase
             return BadRequest(new { message = "Invalid expense claim payload." });
         }
 
-        var submitted = await _employeeService.SubmitExpenseAsync(expense);
-        return Ok(submitted);
+        try
+        {
+            var submitted = await _employeeService.SubmitExpenseAsync(expense);
+            return Ok(submitted);
+        }
+        catch (System.InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("expenses/{id}")]
@@ -74,13 +81,20 @@ public class EmployeeController : ControllerBase
             return BadRequest(new { message = "Invalid expense claim payload." });
         }
 
-        var success = await _employeeService.UpdateExpenseAsync(id, expense);
-        if (!success)
+        try
         {
-            return BadRequest(new { message = "Only Draft or Rejected expenses can be updated, or the record does not exist." });
-        }
+            var success = await _employeeService.UpdateExpenseAsync(id, expense);
+            if (!success)
+            {
+                return BadRequest(new { message = "Only Draft or Rejected expenses can be updated, or the record does not exist." });
+            }
 
-        return Ok(new { success = true, message = "Expense requisition updated successfully." });
+            return Ok(new { success = true, message = "Expense requisition updated successfully." });
+        }
+        catch (System.InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("expenses/{id}")]

@@ -11,6 +11,8 @@ export class EmployeeService {
   readonly expenses = signal<Expense[]>([]);
   readonly profile = signal<UserProfile | null>(null);
   readonly activities = signal<ActivityLog[]>([]);
+  readonly isSubmissionFrozen = signal<boolean>(false);
+  readonly freezeDay = signal<number>(18);
 
   // Currency and country state
   readonly selectedCountry = signal<string>(localStorage.getItem('selectedCountry') || 'United States');
@@ -118,8 +120,12 @@ export class EmployeeService {
   loadActivities(): void {
     this.http.get<any>('/api/employee/dashboard').subscribe({
       next: (summary) => {
-        if (summary && summary.recentActivities) {
-          this.activities.set(summary.recentActivities);
+        if (summary) {
+          if (summary.recentActivities) {
+            this.activities.set(summary.recentActivities);
+          }
+          this.isSubmissionFrozen.set(summary.isSubmissionFrozen ?? false);
+          this.freezeDay.set(summary.freezeDay ?? 18);
         }
       },
       error: (err) => console.error('Failed to load dashboard activities', err)

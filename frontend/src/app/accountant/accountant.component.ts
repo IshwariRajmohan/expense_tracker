@@ -27,6 +27,12 @@ export class AccountantComponent implements OnInit {
   currentPage = 1;
   pageSize = 5;
 
+  // Search, Filter & Pagination State for Activity Logs
+  logSearchQuery = '';
+  logFilterType = '';
+  logCurrentPage = 1;
+  logPageSize = 10;
+
   // Search, Filter & Pagination State for Payment History
   historySearchQuery = '';
   historyFilterCategory = '';
@@ -107,6 +113,43 @@ export class AccountantComponent implements OnInit {
 
   onApprovedFilterChange(): void {
     this.currentPage = 1;
+  }
+
+  // --- Search, Filtering & Pagination for Activity Logs ---
+  get filteredActivityLogs(): any[] {
+    return this.accountantService.activityLogs().filter(log => {
+      const matchesSearch = log.action.toLowerCase().includes(this.logSearchQuery.toLowerCase()) ||
+                            log.id.toLowerCase().includes(this.logSearchQuery.toLowerCase());
+      const matchesType = !this.logFilterType || log.statusType === this.logFilterType;
+      return matchesSearch && matchesType;
+    });
+  }
+
+  get paginatedActivityLogs(): any[] {
+    const start = (this.logCurrentPage - 1) * this.logPageSize;
+    return this.filteredActivityLogs.slice(start, start + this.logPageSize);
+  }
+
+  get totalLogPages(): number {
+    return Math.ceil(this.filteredActivityLogs.length / this.logPageSize);
+  }
+
+  get totalLogCount(): number {
+    return this.filteredActivityLogs.length;
+  }
+
+  changeLogPage(page: number): void {
+    if (page >= 1 && page <= this.totalLogPages) {
+      this.logCurrentPage = page;
+    }
+  }
+
+  getLogPagesArray(): number[] {
+    return Array.from({ length: this.totalLogPages }, (_, i) => i + 1);
+  }
+
+  onLogFilterChange(): void {
+    this.logCurrentPage = 1;
   }
 
   // --- Search, Filtering & Pagination for Payment History ---
@@ -215,8 +258,8 @@ export class AccountantComponent implements OnInit {
       this.accountantService.loadDashboard();
       this.accountantService.loadApprovedExpenses();
     } else if (tab === 'approved-expenses') {
-      this.accountantService.loadApprovedExpenses();
-      this.currentPage = 1;
+      this.accountantService.loadActivityLogs();
+      this.logCurrentPage = 1;
     } else if (tab === 'payment-history') {
       this.accountantService.loadPaymentHistory();
       this.historyCurrentPage = 1;

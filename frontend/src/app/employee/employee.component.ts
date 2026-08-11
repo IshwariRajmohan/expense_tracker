@@ -33,7 +33,6 @@ export class EmployeeComponent implements OnInit {
   expenseDescription = '';
   expenseNotes = '';
   expenseItems: ExpenseItem[] = [];
-  receiptMockName = '';
 
   // Modal State
   selectedExpense: Expense | null = null;
@@ -132,7 +131,6 @@ export class EmployeeComponent implements OnInit {
     this.expenseItems = [
       { name: '', category: 'Software & SaaS', cost: 0, quantity: 1 }
     ];
-    this.receiptMockName = '';
   }
 
   addNewItemRow(): void {
@@ -156,12 +154,7 @@ export class EmployeeComponent implements OnInit {
     return this.expenseItems.reduce((sum, item) => sum + (item.cost * item.quantity), 0);
   }
 
-  handleReceiptUpload(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.receiptMockName = input.files[0].name;
-    }
-  }
+
 
   submitExpenseForm(): void {
     if (!this.expenseTitle.trim()) {
@@ -229,7 +222,6 @@ export class EmployeeComponent implements OnInit {
     this.expenseDescription = expense.description;
     this.expenseNotes = expense.notes ?? '';
     this.expenseItems = expense.items.map(item => ({ ...item }));
-    this.receiptMockName = 'Current Receipt Attached';
     this.activeTab = 'create-expense';
   }
 

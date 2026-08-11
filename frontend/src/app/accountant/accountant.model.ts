@@ -46,3 +46,10 @@ export interface AccountantExpense {
   employee: EmployeeInfo;
   approvalHistory: ApprovalHistoryItem[];
 }
+
+export interface ActivityLog {
+  id: string;
+  action: string;
+  timestamp: string;
+  statusType: string;
+}

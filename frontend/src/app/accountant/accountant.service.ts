@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { AccountantDashboard, AccountantExpense } from './accountant.model';
+import { AccountantDashboard, AccountantExpense, ActivityLog } from './accountant.model';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +10,7 @@ export class AccountantService {
   readonly dashboard = signal<AccountantDashboard | null>(null);
   readonly approvedExpenses = signal<AccountantExpense[]>([]);
   readonly paymentHistory = signal<AccountantExpense[]>([]);
+  readonly activityLogs = signal<ActivityLog[]>([]);
   
   readonly selectedCurrencySymbol = signal<string>(localStorage.getItem('selectedCurrencySymbol') || '$');
 
@@ -21,6 +22,7 @@ export class AccountantService {
     this.loadDashboard();
     this.loadApprovedExpenses();
     this.loadPaymentHistory();
+    this.loadActivityLogs();
   }
 
   loadDashboard(): void {
@@ -44,6 +46,13 @@ export class AccountantService {
     });
   }
 
+  loadActivityLogs(): void {
+    this.http.get<ActivityLog[]>('/api/accountant/activity-logs').subscribe({
+      next: (data) => this.activityLogs.set(data),
+      error: (err) => console.error('Failed to load activity logs', err)
+    });
+  }
+
   getExpenseById(id: string): Observable<AccountantExpense> {
     return this.http.get<AccountantExpense>(`/api/accountant/expense/${id}`);
   }
@@ -54,6 +63,7 @@ export class AccountantService {
         this.loadDashboard();
         this.loadApprovedExpenses();
         this.loadPaymentHistory();
+        this.loadActivityLogs();
       })
     );
   }

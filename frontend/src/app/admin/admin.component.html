@@ -29,12 +29,7 @@
           <span>Dashboard</span>
         </a>
       </li>
-      <li class="menu-item">
-        <a class="menu-link" [class.active]="activeTab === 'users'" (click)="changeTab('users')">
-          <i class="bi bi-people"></i>
-          <span>Users</span>
-        </a>
-      </li>
+
       <li class="menu-item">
         <a class="menu-link" [class.active]="activeTab === 'expenses'" (click)="changeTab('expenses')">
           <i class="bi bi-receipt"></i>
@@ -253,130 +248,7 @@
         <!-- System Logs moved to upper dashboard slot -->
       </section>
 
-      <!-- USERS TAB -->
-      <section *ngIf="activeTab === 'users'" class="fade-in">
-        <div class="row g-4">
-          <!-- Users table column -->
-          <div class="col-12 col-xl-7">
-            <div class="glass-card h-100">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="text-dark font-weight-bold mb-0">Company Users Archive</h5>
-                <button class="btn btn-sm btn-primary-custom px-3" (click)="openAddUserModal()">
-                  <i class="bi bi-person-plus me-1.5"></i>Add User
-                </button>
-              </div>
 
-              <!-- Search/Filters bar -->
-              <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1" style="max-width: 500px;">
-                  <div class="input-group rounded-pill overflow-hidden border border-light-subtle shadow-sm flex-grow-1">
-                    <span class="input-group-text bg-white border-0 text-muted ps-3"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control border-0 bg-white" placeholder="Search by name, ID..." [(ngModel)]="userSearchQuery">
-                  </div>
-                  <select class="form-select custom-input shadow-sm" style="max-width: 140px;" [(ngModel)]="userFilterRole">
-                    <option value="">All Roles</option>
-                    <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Users table -->
-              <div class="table-responsive border border-light-subtle rounded" style="max-height: 480px; overflow-y: auto;">
-                <table class="table custom-table mb-0 align-middle">
-                  <thead>
-                    <tr>
-                      <th>User</th>
-                      <th>Role</th>
-                      <th>Department</th>
-                      <th class="text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let u of filteredUsers" class="cursor-pointer" (click)="selectedUser = u">
-                      <td>
-                        <div class="d-flex align-items-center gap-2">
-                          <img [src]="u.avatarUrl" class="rounded-circle border border-primary-subtle" style="width: 28px; height: 28px; object-fit: cover;">
-                          <div>
-                            <span class="text-dark font-weight-bold d-block fs-8">{{ u.name }}</span>
-                            <small class="text-muted fs-9 d-block">ID: {{ u.employeeId }}</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span class="badge bg-light text-dark border border-light-subtle rounded-pill px-2.5 py-1 fs-9">
-                          {{ u.role }}
-                        </span>
-                      </td>
-                      <td><span class="text-muted fs-8">{{ u.department }}</span></td>
-                      <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary px-3 rounded-pill" (click)="selectedUser = u; $event.stopPropagation()">
-                          <i class="bi bi-eye"></i> Details
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- User detailed card column (Right) -->
-          <div class="col-12 col-xl-5">
-            <div class="glass-card h-100 d-flex flex-column justify-content-between" style="min-height: 450px;">
-              <div *ngIf="selectedUser; else noUserSelected">
-                <div class="text-center border-bottom border-light-subtle pb-4 mb-4">
-                  <img [src]="selectedUser.avatarUrl" class="rounded-circle border border-primary border-3 mb-3" style="width: 90px; height: 90px; object-fit: cover;">
-                  <h4 class="text-dark font-weight-bold mb-1">{{ selectedUser.name }}</h4>
-                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-8 rounded-pill">
-                    {{ selectedUser.role }}
-                  </span>
-                </div>
-
-                <div class="row g-3 mb-4">
-                  <div class="col-6">
-                    <small class="text-muted fs-9 d-block">CORPORATE ID</small>
-                    <strong class="text-dark fs-8">{{ selectedUser.employeeId }}</strong>
-                  </div>
-                  <div class="col-6">
-                    <small class="text-muted fs-9 d-block">DEPARTMENT</small>
-                    <strong class="text-dark fs-8">{{ selectedUser.department }}</strong>
-                  </div>
-                  <div class="col-12">
-                    <small class="text-muted fs-9 d-block">EMAIL ADDRESS</small>
-                    <strong class="text-dark fs-8">{{ selectedUser.email }}</strong>
-                  </div>
-                </div>
-
-                <!-- Budget section for employees -->
-                <div class="bg-light rounded p-3 border border-light-subtle" *ngIf="selectedUser.role === 'Employee' || selectedUser.role === 'Manager'">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted fs-8">Budget Limit</span>
-                    <strong class="text-dark fs-8">{{ adminService.selectedCurrencySymbol() }}{{ selectedUser.budgetLimit | number:'1.2-2' }}</strong>
-                  </div>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-muted fs-8">Spent Limit</span>
-                    <strong class="text-danger fs-8">{{ adminService.selectedCurrencySymbol() }}{{ selectedUser.spentAmount | number:'1.2-2' }}</strong>
-                  </div>
-                  <!-- Progress Bar -->
-                  <div class="progress mt-3" style="height: 6px;">
-                    <div class="progress-bar bg-danger" role="progressbar" [style.width.%]="(selectedUser.spentAmount / selectedUser.budgetLimit) * 100"></div>
-                  </div>
-                  <small class="text-muted fs-9 d-block mt-2 text-end">
-                    Spent Percentage: {{ ((selectedUser.spentAmount / selectedUser.budgetLimit) * 100) | number:'1.0-0' }}%
-                  </small>
-                </div>
-              </div>
-              <ng-template #noUserSelected>
-                <div class="text-center py-5 my-auto text-muted">
-                  <i class="bi bi-person-bounding-box fs-1 mb-2 d-block"></i>
-                  <h6 class="text-dark">Select a User</h6>
-                  <p class="fs-8">Click details on any user in the archive to view their corporate card metadata.</p>
-                </div>
-              </ng-template>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <!-- ALL EXPENSES TAB -->
       <section *ngIf="activeTab === 'expenses'" class="fade-in">
@@ -600,9 +472,6 @@
             <div class="glass-card h-100">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="text-dark font-weight-bold mb-0">Monthly Expenses Aggregates</h5>
-                <button class="btn btn-sm btn-outline-success" (click)="downloadReportCsv('monthly')">
-                  <i class="bi bi-download me-1.5"></i>Download
-                </button>
               </div>
               <div class="table-responsive border border-light-subtle rounded" style="max-height: 260px; overflow-y: auto;">
                 <table class="table custom-table mb-0 align-middle">
@@ -630,9 +499,6 @@
             <div class="glass-card h-100">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="text-dark font-weight-bold mb-0">Department Expenses Analysis</h5>
-                <button class="btn btn-sm btn-outline-success" (click)="downloadReportCsv('department')">
-                  <i class="bi bi-download me-1.5"></i>Download
-                </button>
               </div>
               <div class="table-responsive border border-light-subtle rounded">
                 <table class="table custom-table mb-0 align-middle">
@@ -662,9 +528,6 @@
             <div class="glass-card">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="text-dark font-weight-bold mb-0">Top Spending Employees / Managers</h5>
-                <button class="btn btn-sm btn-outline-success" (click)="downloadReportCsv('top-spenders')">
-                  <i class="bi bi-download me-1.5"></i>Download Spenders
-                </button>
               </div>
               <div class="table-responsive border border-light-subtle rounded">
                 <table class="table custom-table mb-0 align-middle">

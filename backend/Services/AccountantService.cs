@@ -173,4 +173,11 @@ public class AccountantService : IAccountantService
 
         return await MapToAccountantExpenseDtos(paid);
     }
+
+    public async Task<IEnumerable<ActivityLog>> GetActivityLogsAsync()
+    {
+        return await _context.ActivityLogs
+            .OrderByDescending(a => a.Timestamp)
+            .ToListAsync();
+    }
 }
