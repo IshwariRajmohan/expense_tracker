@@ -405,6 +405,10 @@ export class AdminComponent implements OnInit {
   logout(): void {
     this.authService.currentUserName.set(null);
     this.authService.currentUserRole.set(null);
+    this.adminService.settings.set(null);
+    this.adminService.users.set([]);
+    this.adminService.expenses.set([]);
+    this.adminService.dashboard.set(null);
     this.router.navigateByUrl('/');
   }
 }

@@ -405,6 +405,9 @@ export class EmployeeComponent implements OnInit {
 
   logout(): void {
     this.authService.currentUserName.set(null);
+    this.authService.currentUserRole.set(null);
+    this.employeeService.profile.set(null);
+    this.employeeService.expenses.set([]);
     this.router.navigateByUrl('/');
   }
 }

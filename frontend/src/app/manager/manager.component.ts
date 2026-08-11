@@ -255,6 +255,9 @@ export class ManagerComponent implements OnInit {
   logout(): void {
     this.authService.currentUserName.set(null);
     this.authService.currentUserRole.set(null);
+    this.managerService.profile.set(null);
+    this.managerService.pendingExpenses.set([]);
+    this.managerService.dashboard.set(null);
     this.router.navigateByUrl('/');
   }
 }

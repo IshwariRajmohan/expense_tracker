@@ -21,6 +21,10 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        // Reset current user state so that a failed login clears any previous state
+        CurrentUserState.Username = "";
+        CurrentUserState.Role = "";
+
         if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
         {
             return BadRequest(new LoginResponse
