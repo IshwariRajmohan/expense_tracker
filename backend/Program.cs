@@ -58,7 +58,11 @@ string? FindWorkingConnectionString(string? primaryConnectionString)
             originalServer,
             "localhost",
             "localhost\\SQLEXPRESS",
-            "localhost\\MSSQLSERVER03"
+            "localhost\\MSSQLSERVER03",
+            "localhost\\MSSQLSERVER",
+            "localhost\\MSSQL",
+            "(localdb)\\MSSQLLocalDB",
+            "."
         };
 
         foreach (var server in serverCandidates.Distinct(StringComparer.OrdinalIgnoreCase))

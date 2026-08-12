@@ -57,7 +57,9 @@ public static class DbSeeder
             new() { Username = "david", Password = "123", DisplayName = "David Wilson", Role = "Employee" },
             new() { Username = "jessica", Password = "123", DisplayName = "Jessica Taylor", Role = "Employee" },
             new() { Username = "james", Password = "123", DisplayName = "James Thomas", Role = "Employee" },
-            new() { Username = "sarvesh", Password = "123", DisplayName = "sarvesh", Role = "Employee" }
+            new() { Username = "sarvesh", Password = "123", DisplayName = "sarvesh", Role = "Employee" },
+            new() { Username = "aneesh", Password = "123", DisplayName = "aneesh", Role = "Employee" }
+
             
 
         };
@@ -101,7 +103,8 @@ public static class DbSeeder
             new() { EmployeeId = "FP-2024-333", Name = "Emily Davis", Email = "emily.d@firstpay.com", Role = "Employee", Department = "Sales", BudgetLimit = 5000.00m, SpentAmount = 1500.00m, AvatarUrl = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=256&auto=format&fit=crop", ManagerId = "FP-2024-003" },
             new() { EmployeeId = "FP-2024-444", Name = "David Wilson", Email = "david.w@firstpay.com", Role = "Employee", Department = "Engineering", BudgetLimit = 5000.00m, SpentAmount = 900.00m, AvatarUrl = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=256&auto=format&fit=crop", ManagerId = "FP-2024-001" },
             new() { EmployeeId = "FP-2024-555", Name = "Jessica Taylor", Email = "jessica.t@firstpay.com", Role = "Employee", Department = "Marketing", BudgetLimit = 5000.00m, SpentAmount = 1100.00m, AvatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop", ManagerId = "FP-2024-002" },
-            new() { EmployeeId = "FP-2024-666", Name = "James Thomas", Email = "james.t@firstpay.com", Role = "Employee", Department = "Sales", BudgetLimit = 5000.00m, SpentAmount = 2200.00m, AvatarUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop", ManagerId = "FP-2024-003" }
+            new() { EmployeeId = "FP-2024-666", Name = "James Thomas", Email = "james.t@firstpay.com", Role = "Employee", Department = "Sales", BudgetLimit = 5000.00m, SpentAmount = 2200.00m, AvatarUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop", ManagerId = "FP-2024-003" },
+            new() { EmployeeId = "FP-2024-999", Name = "aneesh", Email = "aneesh@firstpay.com", Role = "Employee", Department = "Engineering", BudgetLimit = 5000.00m, SpentAmount = 0.00m, AvatarUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=256&auto=format&fit=crop", ManagerId = "FP-2024-001" }
         };
 
         foreach (var employee in employees)
