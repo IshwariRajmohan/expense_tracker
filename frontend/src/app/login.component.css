@@ -9,7 +9,7 @@
 .visual-panel {
   flex: 1.2;
   position: relative;
-  background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 100%);
+  background: var(--brand-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,7 +44,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, transparent 20%, rgba(30, 27, 75, 0.4) 100%);
+  background: radial-gradient(circle, transparent 20%, rgba(6, 78, 59, 0.4) 100%);
   z-index: 1;
 }
 
@@ -99,7 +99,7 @@
   letter-spacing: 0.25em;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #4f46e5;
+  color: var(--primary-color);
 }
 
 .subtitle {
@@ -143,8 +143,8 @@
 
 .field input:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
 button {
@@ -154,16 +154,16 @@ button {
   font-weight: 700;
   font-size: 1rem;
   color: white;
-  background: #4f46e5;
+  background: var(--primary-color);
   cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2);
   transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
   margin-top: 5px;
 }
 
 button:hover {
-  background: #4338ca;
-  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.25);
+  background: #047857;
+  box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.25);
 }
 
 button:active {

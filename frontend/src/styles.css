@@ -9,6 +9,35 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Theme: Emerald Ivory — Premium Finance */
+  --bg-gradient: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  --text-main: #0F172A;
+  --text-muted: #64748b;
+  --border-color: #D1FAE5;
+  --table-header-bg: #F8FAFC;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-border: #D1FAE5;
+  --sidebar-link-hover-bg: #F1F5F9;
+  --sidebar-link-active-bg: #ECFDF5;
+  
+  --primary-color: #059669;
+  --brand-gradient: linear-gradient(135deg, #059669 0%, #34D399 100%);
+  --glass-card-bg: rgba(255, 255, 255, 0.85);
+  --primary-glow: rgba(5, 150, 105, 0.06);
+  --accent-color: #34D399;
+  --secondary-color: #34D399;
+  
+  --warning-subtle-bg: #FEF3C7;
+  --warning-text: #B45309;
+  --warning-border: #FDE68A;
+  
+  --info-subtle-bg: #ECFEFF;
+  --info-text: #0891B2;
+  --info-border: #CFFAFE;
+  
+  --soft-accent: rgba(52, 211, 153, 0.1);
+  --primary-gradient: linear-gradient(180deg, #34D399 0%, #059669 100%);
 }
 
 * {
@@ -19,8 +48,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  color: #1e293b; /* Slate 800 */
+  background: var(--bg-gradient);
+  color: var(--text-main);
 }
 
 button,
@@ -44,4 +73,17 @@ textarea {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Theme Overrides for Bootstrap Utility Classes */
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.bg-primary-subtle {
+  background-color: var(--primary-glow) !important;
+}
+
+.border-primary-subtle {
+  border-color: var(--border-color) !important;
 }

@@ -3,18 +3,27 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: linear-gradient(135deg, #020617 0%, #111827 45%, #1d4ed8 100%);
-  color: #f8fafc;
+  background: var(--bg-gradient);
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
 }
 
 .user-card {
   width: min(100%, 480px);
-  padding: 36px;
+  padding: 40px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.09);
-  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--glass-card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 50px rgba(5, 150, 105, 0.06), 0 1px 3px rgba(5, 150, 105, 0.02);
+  border: 1px solid var(--border-color);
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 60px rgba(5, 150, 105, 0.1);
 }
 
 .eyebrow {
@@ -22,25 +31,42 @@
   text-transform: uppercase;
   letter-spacing: 0.32em;
   font-size: 0.78rem;
-  color: #bfdbfe;
+  font-weight: 700;
+  color: var(--primary-color);
 }
 
 h1 {
   margin: 0 0 12px;
   font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  margin: 0 0 24px;
-  color: #dbeafe;
+  margin: 0 0 28px;
+  color: var(--text-muted);
+  font-size: 0.98rem;
 }
 
 .link-btn {
   display: inline-block;
-  padding: 12px 18px;
-  border-radius: 999px;
-  background: white;
-  color: #1d4ed8;
+  padding: 12px 28px;
+  border-radius: 12px;
+  background: var(--primary-color);
+  color: white;
   font-weight: 700;
   text-decoration: none;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.link-btn:hover {
+  background-color: #047857;
+  box-shadow: 0 8px 18px rgba(5, 150, 105, 0.3);
+  color: white;
+}
+
+.link-btn:active {
+  transform: scale(0.97);
 }
